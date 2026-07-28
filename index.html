@@ -1,1 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>货车成本计算器</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui;-webkit-tap-highlight-color: transparent;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;width:100%;overflow-x:hidden;}
+body{
+    padding-top: calc(12px + env(safe-area-inset-top));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    padding-left: calc(12px + env(safe-area-inset-left));
+    padding-right: calc(12px + env(safe-area-inset-right));
+    background: linear-gradient(135deg, #e6f0ff 0%, #f0f7ff 100%);
+    min-height:100vh;
+    width:100%;
+    overflow-x:hidden;
+}
+.wrap-border{
+    padding:6px;
+    border-radius:16px;
+    background: linear-gradient(135deg, #007bff, #42a5f5, #64b5f6);
+    box-shadow: 0 4px 18px rgba(0, 90, 200, 0.18);
+}
+.box{
+    position:relative;
+    background:#fff;
+    padding:18px;
+    border-radius:12px;
+    width:100%;
+    max-width:680px;
+    margin:0 auto;
+}
+.switch-btn{
+    position:absolute;
+    top:18px;
+    left:8px;
+    border:0;
+    background:none;
+    color:#0066ff;
+    font-size:24px;
+    z-index:9999;
+    padding:0 4px;
+    line-height:1;
+    cursor:pointer;
+}
+/* 双页面隔离核心样式 */
+.page{
+    display:none;
+    width:100%;
+}
+.page.active{
+    display:block;
+}
+h2{text-align:center;margin-bottom:18px;font-size:18px;color:#222;line-height:24px;padding-top:4px;font-weight:600;}
+.main-header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px;}
+.main-title{font-size:15px;font-weight:600;color:#333;}
+.item{margin-bottom:14px;width:100%;}
+label{font-size:14px;color:#444;display:block;margin-bottom:6px;}
+input{width:100%;height:44px;padding:0 12px;border:1px solid #e0e4eb;border-radius:8px;font-size:16px;background:#fafbfd;}
+input:focus{outline:none;border-color:#0066ff;background:#fff;}
+.btn-row{
+    width:100%;
+    height:46px;
+    border:0;
+    border-radius:10px;
+    font-size:15px;
+    margin-top:18px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:#fff;
+    font-weight:500;
+    letter-spacing:0.5px;
+    box-shadow:0 1px 4px rgba(0,102,255,0.15);
+}
+.toggle-btn{background:#28a745;}
+.calc-btn{background:#0066ff;}
+.toggle-clear-btn{font-size:13px;padding:4px 10px;border:none;border-radius:6px;background:#dc3545;color:#fff;cursor:pointer;white-space:nowrap;}
+.detail-toggle-btn{
+    font-size:13px;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid rgba(0,102,255,0.22);
+    background:rgba(0,102,255,0.08);
+    color:#0066ff;
+    cursor:pointer;
+    user-select:none;
+    white-space:nowrap;
+}
+.pan-box{display:none;padding:16px 0;margin:12px 0;width:100%;}
+.pan-box.show{display:block}
+.single-pin{border:1px solid #cce0ff;border-radius:10px;padding:16px;background:#f8fbff;width:100%;}
+.pin-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+    cursor:pointer;
+    gap:8px;
+}
+.pin-header-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+h4{font-size:15px;font-weight:600;color:#111;}
+h5{font-size:14px;color:#222;}
+.pin-expand{font-size:18px;color:#0066ff;font-weight:bold;line-height:1;}
+.pin-content{display:none;width:100%;}
+.pin-content.show{display:block;}
 
+.pin-block{
+    border:1px solid #b8d8ff;
+    border-radius:8px;
+    padding:14px;
+    background:#f3f9ff;
+    margin-bottom:12px;
+}
+.sub-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    margin-bottom:8px;
+}
+.sub-expand{font-size:16px;color:#0056cc;font-weight:bold;line-height:1;}
+.sub-content{display:none;width:100%;}
+.sub-content.show{display:block;}
+
+.result{display:none;margin-top:18px;padding:16px;background:#e8f3ff;border-radius:10px;line-height:1.6;width:100%;}
+.result-block{padding:12px 0;border-bottom:1px solid #d1e4ff;display:flex;flex-direction:column;gap:6px;width:100%;}
+.result-block:last-child{border-bottom:none;}
+.profit-total{
+    font-size:18px;
+    font-weight:bold;
+    color:#004bbf;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+}
+.profit-small{font-size:14px;color:#0066ff;font-weight:500;}
+.perkm-blue{font-size:15px;color:#0066ff;font-weight:bold;}
+.perkm-red{font-size:15px;color:#dc3545;font-weight:bold;}
+.warn,.tip-red,.single-low-tip{color:#dc3545;font-weight:bold;font-size:14px;}
+.tip-blue{color:#0066ff;font-size:14px;}
+.detail-wrap{
+    overflow:hidden;
+    max-height:0;
+    transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);
+    margin-top:10px;
+    width:100%;
+}
+.detail-wrap.open{
+    max-height:3000px;
+    padding-top:12px;
+}
+.block{margin:12px 0;padding:14px;background:#f7faff;border-radius:8px;border-left:3px solid #0066ff;width:100%;}
+.block-title{font-size:15px;font-weight:bold;color:#004bbf;margin-bottom:10px;}
+.block p{text-align:left;padding-left:2px;margin:6px 0;color:#222;display:flex;justify-content:space-between;font-size:13px;gap:4px;}
+.history-item{
+    background:#ffffff;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 1px 10px rgba(0,102,255,0.06);
+    border:1px solid rgba(0,102,255,0.06);
+    position:relative;
+    width:100%;
+}
+.history-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    gap:6px;
+}
+.history-time{
+    font-size:12px;
+    color:#888888;
+    letter-spacing:0.2px;
+}
+.history-btn-group{
+    display:flex;
+    gap:8px;
+    align-items:center;
+}
+.history-expand{
+    background:rgba(0,102,255,0.08);
+    color:#0066ff;
+    font-size:13px;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid rgba(0,102,255,0.22);
+    cursor:pointer;
+    user-select:none;
+    white-space:nowrap;
+}
+.history-del{
+    font-size:12px;
+    padding:3px 8px;
+    border:none;
+    border-radius:4px;
+    background:#dc3545;
+    color:#fff;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.history-data{padding-left:2px;width:100%;}
+.history-data .profit-total{font-size:16px;margin:4px 0;}
+.history-data .perkm-blue, .history-data .profit-small{font-size:13px;margin:3px 0;}
+.history-detail{
+    overflow:hidden;
+    max-height:0;
+    transition:max-height 0.42s cubic-bezier(0.4,0,0.2,1);
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed #cce0ff;
+    width:100%;
+}
+.history-detail.open{max-height:4000px;}
+.history-detail-glass{
+    background:linear-gradient(135deg, rgba(255,255,255,0.75), rgba(248,252,255,0.88));
+    backdrop-filter: blur(8px);
+    border:1px solid rgba(0,102,255,0.12);
+    border-radius:10px;
+    padding:14px;
+    width:100%;
+}
+.history-block{
+    margin:12px 0;
+    padding:14px;
+    border-radius:8px;
+    border-left:3px solid #0066ff;
+    width:100%;
+}
+.block-income{background:rgba(0,102,255,0.06);}
+.block-main{background:rgba(0,130,255,0.07);}
+.block-pin{background:rgba(0,150,255,0.06);}
+.block-total{background:rgba(0,70,220,0.09);}
+.history-block-title{
+    font-size:14px;
+    font-weight:600;
+    color:#0056cc;
+    margin-bottom:10px;
+}
+.history-block p{
+    margin:6px 0;
+    font-size:13px;
+    color:#2c3344;
+    display:flex;
+    justify-content:space-between;
+    gap:4px;
+}
+.history-profit-text{
+    font-size:14px;
+    font-weight:bold;
+    color:#0066ff;
+    white-space:nowrap;
+}
+.history-cost-text{
+    font-size:14px;
+    font-weight:bold;
+    color:#dc3545;
+    white-space:nowrap;
+}
+</style>
+</head>
+<body>
+<!-- 页面1：运费计算器 -->
+<div class="page active" id="pageCalc">
+<div class="wrap-border">
+    <div class="box">
+        <button class="switch-btn" id="switchBtn">←</button>
+        <h2>货车每公里成本计算器</h2>
+        <div class="main-header">
+            <div class="main-title">主单基础信息</div>
+            <button class="toggle-clear-btn" id="clearMainBtn">清空主单</button>
+        </div>
+        <div class="item">
+            <label>1.百公里油耗(L) 默认21</label>
+            <input type="number" id="oil100" value="21" step="0.1">
+        </div>
+        <div class="item">
+            <label>2.柴油单价(元/升)</label>
+            <input type="number" id="oilPrice" placeholder="7.8">
+        </div>
+        <div class="item">
+            <label>3.主单总里程(公里)</label>
+            <input type="number" id="km" placeholder="600">
+        </div>
+        <div class="item">
+            <label>4.每公里高速费 默认1</label>
+            <input type="number" id="roadPerKm" value="1" step="0.01">
+        </div>
+        <div class="item">
+            <label>5.主单运费收入(元)</label>
+            <input type="number" id="income" placeholder="1800">
+        </div>
+        <button class="btn-row toggle-btn" id="toggleBtn">展开多单拼单设置</button>
+        <div class="pan-box" id="panBox">
+            <div class="single-pin">
+                <div class="pin-header" id="head1">
+                    <div class="pin-header-left">
+                        <h4>拼单区域</h4>
+                        <button class="toggle-clear-btn" id="clearAllPinBtn">清空拼单</button>
+                    </div>
+                    <span class="pin-expand" id="icon1">-</span>
+                </div>
+                <div class="pin-content show" id="cont1">
+                    <!-- 拼单1 -->
+                    <div class="pin-block">
+                        <h5>拼单1</h5>
+                        <div class="item">
+                            <label>总里程</label>
+                            <input type="number" id="p1TotalKm" placeholder="里程">
+                        </div>
+                        <div class="item">
+                            <label>高速里程</label>
+                            <input type="number" id="p1HighKm" placeholder="高速">
+                        </div>
+                        <div class="item">
+                            <label>运费</label>
+                            <input type="number" id="p1money" placeholder="收入">
+                        </div>
+                    </div>
+
+                    <!-- 拼单2 默认折叠 -->
+                    <div class="pin-block">
+                        <div class="sub-header" id="subHead2">
+                            <h5>拼单2</h5>
+                            <span class="sub-expand" id="subIcon2">+</span>
+                        </div>
+                        <div class="sub-content" id="subCont2">
+                            <div class="item">
+                                <label>总里程</label>
+                                <input type="number" id="p2TotalKm" placeholder="里程">
+                            </div>
+                            <div class="item">
+                                <label>高速里程</label>
+                                <input type="number" id="p2HighKm" placeholder="高速">
+                            </div>
+                            <div class="item">
+                                <label>运费</label>
+                                <input type="number" id="p2money" placeholder="收入">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 拼单3 默认折叠 -->
+                    <div class="pin-block">
+                        <div class="sub-header" id="subHead3">
+                            <h5>拼单3</h5>
+                            <span class="sub-expand" id="subIcon3">+</span>
+                        </div>
+                        <div class="sub-content" id="subCont3">
+                            <div class="item">
+                                <label>总里程</label>
+                                <input type="number" id="p3TotalKm" placeholder="里程">
+                            </div>
+                            <div class="item">
+                                <label>高速里程</label>
+                                <input type="number" id="p3HighKm" placeholder="高速">
+                            </div>
+                            <div class="item">
+                                <label>运费</label>
+                                <input type="number" id="p3money" placeholder="收入">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="btn-row calc-btn" id="calcBtn">一键计算成本&利润</button>
+        <div class="result" id="res"></div>
+    </div>
+</div>
+</div>
+
+<!-- 页面2：独立历史记录页面 -->
+<div class="page" id="pageHistory">
+    <div class="wrap-border">
+        <div class="box">
+            <button class="switch-btn" id="switchBtn2">←</button>
+            <h2>运费计算历史记录</h2>
+            <div id="historyList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let tempDetailHtml = "";
+const switchBtn = document.getElementById('switchBtn');
+const switchBtn2 = document.getElementById('switchBtn2');
+const pageHistory = document.getElementById('pageHistory');
+const pageCalc = document.getElementById('pageCalc');
+const resultBox = document.getElementById('res');
+let isHistoryOpen = false;
+
+resultBox.style.display = "none";
+
+// ========== 柴油价格本地记忆功能【新增】==========
+const oilPriceInput = document.getElementById('oilPrice');
+// 页面载入读取上次油价
+const savedOilPrice = localStorage.getItem('savedOilPrice');
+if(savedOilPrice){
+    oilPriceInput.value = savedOilPrice;
+}
+// 输入时自动保存油价
+oilPriceInput.addEventListener('input',function(){
+    localStorage.setItem('savedOilPrice', this.value);
+});
+
+// 切换页面逻辑【重点优化：两个页面完全隔离】
+function switchPage() {
+    isHistoryOpen = !isHistoryOpen;
+    if(isHistoryOpen){
+        pageCalc.classList.remove('active');
+        pageHistory.classList.add('active');
+        renderHistory();
+    }else{
+        pageHistory.classList.remove('active');
+        pageCalc.classList.add('active');
+    }
+}
+switchBtn.addEventListener('click', switchPage);
+switchBtn2.addEventListener('click', switchPage);
+
+function getHistory(){
+    let data = localStorage.getItem('truckHistory');
+    return data ? JSON.parse(data) : [];
+}
+function saveHistory(item){
+    let list = getHistory();
+    list.unshift(item);
+    // 最多保存5条，超出自动删掉最旧记录
+    if(list.length > 5) list = list.slice(0,5);
+    localStorage.setItem('truckHistory', JSON.stringify(list));
+}
+function delOneHistory(index){
+    let list = getHistory();
+    list.splice(index,1);
+    localStorage.setItem('truckHistory', JSON.stringify(list));
+    renderHistory();
+}
+
+function renderHistory(){
+    const listWrap = document.getElementById('historyList');
+    const history = getHistory();
+    if(history.length === 0){
+        listWrap.innerHTML = "<div style='text-align:center;color:#666;padding:30px;font-size:13px'>暂无计算记录</div>";
+        return;
+    }
+    let html = "";
+    history.forEach((item,idx)=>{
+        html += `
+        <div class="history-item">
+            <div class="history-top">
+                <div class="history-time">${item.time}</div>
+                <div class="history-btn-group">
+                    <button class="history-del" data-delidx="${idx}">删除记录</button>
+                    <div class="history-expand" data-index="${idx}">查看明细</div>
+                </div>
+            </div>
+            <div class="history-data">
+                <div class="profit-total">总利润：${item.totalProfit} 元</div>
+                <div class="perkm-blue">每公里收益：${item.perKm} 元</div>
+                <div class="perkm-red">主单每公里成本：${item.mainCostPerKm} 元/公里</div>
+                <div class="profit-small">主单纯利润：${item.mainProfit} 元</div>
+                ${item.pinHtml}
+                <div>${item.tipText}</div>
+            </div>
+            <div class="history-detail" data-detailidx="${idx}">
+                <div class="history-detail-glass">
+                    ${item.fullDetail}
+                </div>
+            </div>
+        </div>`;
+    })
+    listWrap.innerHTML = html;
+    document.querySelectorAll('.history-expand').forEach(dom=>{
+        dom.onclick = function(){
+            const idx = this.getAttribute('data-index');
+            const detailDom = document.querySelector(`.history-detail[data-detailidx="${idx}"]`);
+            detailDom.classList.toggle('open');
+            this.innerText = detailDom.classList.contains('open') ? '收起明细' : '查看明细';
+        }
+    })
+    document.querySelectorAll('.history-del').forEach(dom=>{
+        dom.onclick = function(){
+            const idx = this.getAttribute('data-delidx');
+            delOneHistory(idx);
+        }
+    })
+}
+
+document.getElementById('clearMainBtn').onclick = function(e){
+    e.stopPropagation();
+    document.getElementById('km').value = "";
+    document.getElementById('income').value = "";
+    document.getElementById('roadPerKm').value = "1";
+    resultBox.style.display = "none";
+    tempDetailHtml = "";
+    // 清空主单【不清除柴油单价】保留记忆
+}
+const toggleBtn = document.getElementById('toggleBtn');
+const panBox = document.getElementById('panBox');
+toggleBtn.onclick = function(){
+    panBox.classList.toggle('show');
+    panBox.classList.contains('show') ? this.innerText = '收起多单拼单设置' : this.innerText = '展开多单拼单设置';
+}
+document.getElementById('clearAllPinBtn').onclick = function(e){
+    e.stopPropagation();
+    document.getElementById('p1TotalKm').value = "";
+    document.getElementById('p1HighKm').value = "";
+    document.getElementById('p1money').value = "";
+    document.getElementById('p2TotalKm').value = "";
+    document.getElementById('p2HighKm').value = "";
+    document.getElementById('p2money').value = "";
+    document.getElementById('p3TotalKm').value = "";
+    document.getElementById('p3HighKm').value = "";
+    document.getElementById('p3money').value = "";
+    resultBox.style.display = "none";
+    tempDetailHtml = "";
+}
+document.getElementById('head1').onclick = ()=>{
+    const cont1 = document.getElementById('cont1');
+    const icon1 = document.getElementById('icon1');
+    cont1.classList.toggle('show');
+    icon1.innerText = cont1.classList.contains('show') ? '-' : '+';
+}
+document.getElementById('subHead2').onclick = ()=>{
+    const subCont2 = document.getElementById('subCont2');
+    const subIcon2 = document.getElementById('subIcon2');
+    subCont2.classList.toggle('show');
+    subIcon2.innerText = subCont2.classList.contains('show') ? '-' : '+';
+}
+document.getElementById('subHead3').onclick = ()=>{
+    const subCont3 = document.getElementById('subCont3');
+    const subIcon3 = document.getElementById('subIcon3');
+    subCont3.classList.toggle('show');
+    subIcon3.innerText = subCont3.classList.contains('show') ? '-' : '+';
+}
+
+const HIGHWAY_PRICE = 2.4;
+const ROAD_PRICE = 1.5;
+
+function calcSinglePin(totalKm, highKm, money){
+    if(!totalKm || totalKm <=0){
+        return {oil:0,road:0,cost:0,profit:0,realHigh:0,roadKm:0};
+    }
+    let realHighKm = Number(highKm) || 0;
+    if(realHighKm > totalKm) realHighKm = totalKm;
+    const roadKm = totalKm - realHighKm;
+    const costHigh = realHighKm * HIGHWAY_PRICE;
+    const costRoad = roadKm * ROAD_PRICE;
+    const totalCost = costHigh + costRoad;
+    const profit = money - totalCost;
+    return {
+        oil: costRoad,
+        road: costHigh,
+        cost: totalCost,
+        profit: profit,
+        realHigh: realHighKm,
+        roadKm: roadKm
+    };
+}
+
+function calcAll(isSaveRecord = false) {
+    const oil100 = Number(document.getElementById('oil100').value) || 21;
+    const oilPrice = Number(document.getElementById('oilPrice').value) || 0;
+    let roadPerKmInput = document.getElementById('roadPerKm').value;
+    const roadPerKm = roadPerKmInput === "" ? 1 : Number(roadPerKmInput);
+    const km = Number(document.getElementById('km').value) || 0;
+    const income = Number(document.getElementById('income').value) || 0;
+
+    if(km <= 0){
+        resultBox.style.display = "block";
+        resultBox.innerHTML = `<div style="color:red;text-align:center;padding:8px;font-size:14px">请填写主单总里程！</div>`;
+        tempDetailHtml = "";
+        return;
+    }
+
+    const mainOilCost = oil100 / 100 * km * oilPrice;
+    const mainRoadCost = km * roadPerKm;
+    const mainTotalCost = mainOilCost + mainRoadCost;
+    const mainProfit = income - mainTotalCost;
+    //主单每公里
+    const mainPerKmProfit = km > 0 ? mainProfit / km : 0;
+    const mainPerKmCost = km > 0 ? mainTotalCost / km : 0;
+
+    const p1TotalKm = Number(document.getElementById('p1TotalKm').value) || 0;
+    const p1HighKm = Number(document.getElementById('p1HighKm').value) || 0;
+    const p1money = Number(document.getElementById('p1money').value) || 0;
+
+    const p2TotalKm = Number(document.getElementById('p2TotalKm').value) || 0;
+    const p2HighKm = Number(document.getElementById('p2HighKm').value) || 0;
+    const p2money = Number(document.getElementById('p2money').value) || 0;
+
+    const p3TotalKm = Number(document.getElementById('p3TotalKm').value) || 0;
+    const p3HighKm = Number(document.getElementById('p3HighKm').value) || 0;
+    const p3money = Number(document.getElementById('p3money').value) || 0;
+
+    const pin1 = calcSinglePin(p1TotalKm, p1HighKm, p1money);
+    const pin2 = calcSinglePin(p2TotalKm, p2HighKm, p2money);
+    const pin3 = calcSinglePin(p3TotalKm, p3HighKm, p3money);
+    //拼单每公里
+    const p1PerKm = p1TotalKm>0 ? pin1.profit / p1TotalKm : 0;
+    const p1PerKmCost = p1TotalKm>0 ? pin1.cost / p1TotalKm : 0;
+    const p2PerKm = p2TotalKm>0 ? pin2.profit / p2TotalKm : 0;
+    const p2PerKmCost = p2TotalKm>0 ? pin2.cost / p2TotalKm : 0;
+    const p3PerKm = p3TotalKm>0 ? pin3.profit / p3TotalKm : 0;
+    const p3PerKmCost = p3TotalKm>0 ? pin3.cost / p3TotalKm : 0;
+
+    const allPinKm = p1TotalKm + p2TotalKm + p3TotalKm;
+    const allPinIncome = p1money + p2money + p3money;
+    const allPinCost = pin1.cost + pin2.cost + pin3.cost;
+    const allPinProfit = pin1.profit + pin2.profit + pin3.profit;
+    const totalKmAll = km + allPinKm;
+    const totalIncome = income + allPinIncome;
+    const totalCost = mainTotalCost + allPinCost;
+    const totalProfit = totalIncome - totalCost;
+    const perKmProfit = totalKmAll > 0 ? totalProfit / totalKmAll : 0;
+
+    let tip1 = pin1.profit < 100 && p1TotalKm>0 ? `<span class="single-low-tip">拼单1利润不足一百，不建议拼</span>` : "";
+    let tip2 = pin2.profit < 100 && p2TotalKm>0 ? `<span class="single-low-tip">拼单2利润不足一百，不建议拼</span>` : "";
+    let tip3 = pin3.profit < 100 && p3TotalKm>0 ? `<span class="single-low-tip">拼单3利润不足一百，不建议拼</span>` : "";
+
+    let pinHtml = "";
+    if(p1TotalKm > 0){
+        pinHtml += `<div class="profit-small">1.拼单1利润：${pin1.profit.toFixed(2)} 元 ${tip1}</div>`;
+    }
+    if(p2TotalKm > 0){
+        pinHtml += `<div class="profit-small">2.拼单2利润：${pin2.profit.toFixed(2)} 元 ${tip2}</div>`;
+    }
+    if(p3TotalKm > 0){
+        pinHtml += `<div class="profit-small">3.拼单3利润：${pin3.profit.toFixed(2)} 元 ${tip3}</div>`;
+    }
+    if(allPinKm>0){
+        pinHtml += `<div class="profit-small">拼单合计总利润：${allPinProfit.toFixed(2)} 元</div>`;
+    }
+
+    let totalTipText = "";
+    if(allPinKm > 0 || allPinIncome > 0){
+        if(allPinProfit >= 200){
+            totalTipText = `<span class="tip-blue">全部拼单总收益${allPinProfit.toFixed(2)}元，达到标准，值得拼单</span>`;
+        }else{
+            totalTipText = `<span class="single-low-tip">全部拼单总收益${allPinProfit.toFixed(2)}元，低于两百元标准，不建议拼单</span>`;
+        }
+    }else{
+        totalTipText = `<span>本次没有顺路拼单</span>`;
+    }
+
+    let fullDetail = `<div class="history-block block-income">
+        <div class="history-block-title">收入汇总</div>
+        <p><span>主单运费</span><span>${income.toFixed(2)} 元</span></p>`;
+    if(p1TotalKm>0) fullDetail += `<p><span>拼单1运费</span><span>${p1money.toFixed(2)} 元</span></p>`;
+    if(p2TotalKm>0) fullDetail += `<p><span>拼单2运费</span><span>${p2money.toFixed(2)} 元</span></p>`;
+    if(p3TotalKm>0) fullDetail += `<p><span>拼单3运费</span><span>${p3money.toFixed(2)} 元</span></p>`;
+    fullDetail += `<p><span>总收入</span><span class="history-profit-text">${totalIncome.toFixed(2)} 元</span></p>
+    </div>
+    <div class="history-block block-main">
+        <div class="history-block-title">主单成本明细</div>
+        <p><span>行驶里程</span><span>${km} km</span></p>
+        <p><span>燃油费用</span><span>${mainOilCost.toFixed(2)} 元</span></p>
+        <p><span>高速过路费</span><span>${mainRoadCost.toFixed(2)} 元</span></p>
+        <p><span>主单总成本</span><span>${mainTotalCost.toFixed(2)} 元</span></p>
+        <p><span>主单每公里成本</span><span class="history-cost-text">${mainPerKmCost.toFixed(2)} 元/公里</span></p>
+        <p><span>主单纯利润</span><span class="history-profit-text">${mainProfit.toFixed(2)} 元</span></p>
+        <p><span>主单每公里利润</span><span class="history-profit-text">${mainPerKmProfit.toFixed(2)} 元/公里</span></p>
+    </div>`;
+
+    if(p1TotalKm>0){
+        fullDetail += `
+        <div class="history-block block-pin">
+            <div class="history-block-title">拼单1明细</div>
+            <p><span>总里程</span><span>${p1TotalKm} km</span></p>
+            <p><span>高速里程</span><span>${pin1.realHigh} km</span></p>
+            <p><span>下道路程</span><span>${pin1.roadKm} km</span></p>
+            <p><span>运费</span><span>${p1money.toFixed(2)} 元</span></p>
+            <p><span>高速成本</span><span>${pin1.road.toFixed(2)} 元</span></p>
+            <p><span>下道成本</span><span>${pin1.oil.toFixed(2)} 元</span></p>
+            <p><span>总成本</span><span>${pin1.cost.toFixed(2)} 元</span></p>
+            <p><span>拼单每公里成本</span><span class="history-cost-text">${p1PerKmCost.toFixed(2)} 元/公里</span></p>
+            <p><span>利润</span><span class="history-profit-text">${pin1.profit.toFixed(2)} 元 ${pin1.profit < 100 ? '(不建议拼)' : ''}</span></p>
+            <p><span>拼单每公里利润</span><span class="history-profit-text">${p1PerKm.toFixed(2)} 元/公里</span></p>
+        </div>`;
+    }
+    if(p2TotalKm>0){
+        fullDetail += `
+        <div class="history-block block-pin">
+            <div class="history-block-title">拼单2明细</div>
+            <p><span>总里程</span><span>${p2TotalKm} km</span></p>
+            <p><span>高速里程</span><span>${pin2.realHigh} km</span></p>
+            <p><span>下道路程</span><span>${pin2.roadKm} km</span></p>
+            <p><span>运费</span><span>${p2money.toFixed(2)} 元</span></p>
+            <p><span>高速成本</span><span>${pin2.road.toFixed(2)} 元</span></p>
+            <p><span>下道成本</span><span>${pin2.oil.toFixed(2)} 元</span></p>
+            <p><span>总成本</span><span>${pin2.cost.toFixed(2)} 元</span></p>
+            <p><span>拼单每公里成本</span><span class="history-cost-text">${p2PerKmCost.toFixed(2)} 元/公里</span></p>
+            <p><span>利润</span><span class="history-profit-text">${pin2.profit.toFixed(2)} 元 ${pin2.profit < 100 ? '(不建议拼)' : ''}</span></p>
+            <p><span>拼单每公里利润</span><span class="history-profit-text">${p2PerKm.toFixed(2)} 元/公里</span></p>
+        </div>`;
+    }
+    if(p3TotalKm>0){
+        fullDetail += `
+        <div class="history-block block-pin">
+            <div class="history-block-title">拼单3明细</div>
+            <p><span>总里程</span><span>${p3TotalKm} km</span></p>
+            <p><span>高速里程</span><span>${pin3.realHigh} km</span></p>
+            <p><span>下道路程</span><span>${pin3.roadKm} km</span></p>
+            <p><span>运费</span><span>${p3money.toFixed(2)} 元</span></p>
+            <p><span>高速成本</span><span>${pin3.road.toFixed(2)} 元</span></p>
+            <p><span>下道成本</span><span>${pin3.oil.toFixed(2)} 元</span></p>
+            <p><span>总成本</span><span>${pin3.cost.toFixed(2)} 元</span></p>
+            <p><span>拼单每公里成本</span><span class="history-cost-text">${p3PerKmCost.toFixed(2)} 元/公里</span></p>
+            <p><span>利润</span><span class="history-profit-text">${pin3.profit.toFixed(2)} 元 ${pin3.profit < 100 ? '(不建议拼)' : ''}</span></p>
+            <p><span>拼单每公里利润</span><span class="history-profit-text">${p3PerKm.toFixed(2)} 元/公里</span></p>
+        </div>`;
+    }
+    fullDetail += `
+    <div class="history-block block-total">
+        <div class="history-block-title">全程总数据汇总</div>
+        <p><span>主单里程</span><span>${km} 公里</span></p>
+        <p><span>拼单总里程</span><span>${allPinKm} 公里</span></p>
+        <p><span>全程总里程</span><span>${totalKmAll} 公里</span></p>
+        <p><span>全部总成本</span><span>${totalCost.toFixed(2)} 元</span></p>
+        <p><span>每公里净利润</span><span class="history-profit-text">${perKmProfit.toFixed(2)} 元/公里</span></p>
+    </div>`;
+
+    tempDetailHtml = fullDetail;
+    resultBox.style.display = "block";
+    resultBox.innerHTML = `
+        <div class="result-block">
+            <div class="profit-total">
+                <span>全部总利润：${totalProfit.toFixed(2)} 元</span>
+                <span class="detail-toggle-btn" id="resultDetailBtn">查看明细</span>
+            </div>
+            <div class="perkm-blue">每公里收益：${perKmProfit.toFixed(2)} 元</div>
+            <div class="perkm-red">主单每公里成本：${mainPerKmCost.toFixed(2)} 元/公里</div>
+            <div class="profit-small">主单纯利润：${mainProfit.toFixed(2)} 元</div>
+        </div>
+        <div class="result-block">
+            ${pinHtml}
+            <div style="margin-top:6px">${totalTipText}</div>
+        </div>
+        <div class="detail-wrap" id="detailWrap">${tempDetailHtml}</div>
+    `;
+
+    const detailBtn = document.getElementById('resultDetailBtn');
+    const newDetailWrap = document.getElementById('detailWrap');
+    detailBtn.onclick = function(){
+        newDetailWrap.classList.toggle('open');
+        this.innerText = newDetailWrap.classList.contains('open') ? '收起明细' : '查看明细';
+    }
+
+    if(isSaveRecord){
+        const now = new Date();
+        const timeStr = now.getFullYear()+"-"+(now.getMonth()+1)+"-"+now.getDate()+" "+now.getHours()+":"+String(now.getMinutes()).padStart(2,'0');
+        const historyItem = {
+            time: timeStr,
+            totalProfit: totalProfit.toFixed(2),
+            perKm: perKmProfit.toFixed(2),
+            mainCostPerKm: mainPerKmCost.toFixed(2),
+            mainProfit: mainProfit.toFixed(2),
+            pinHtml: pinHtml,
+            tipText: totalTipText,
+            fullDetail: fullDetail
+        }
+        saveHistory(historyItem);
+    }
+}
+
+document.getElementById('calcBtn').onclick = function(){
+    calcAll(true);
+}
+</script>
+</body>
+</html>
