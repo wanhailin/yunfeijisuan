@@ -80,10 +80,6 @@ input,select{
     font-size:15px;
     background:#fafbfd;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size:14px;
 }
 input:focus,select:focus{outline:none;border-color:#0066ff;background:#fff;}
 
@@ -165,7 +161,7 @@ h5{font-size:14px;color:#222;}
     display:flex;justify-content:space-between;align-items:center;
     margin-bottom:10px;gap:6px;
 }
-.history-time{font-size:12px;color:#888888;letter-spacing:0.2px;}
+.history-time{font-size:12px;color:#888;letter-spacing:0.2px;}
 .history-btn-group{display:flex;gap:6px;align-items:center;}
 .history-expand{
     background:rgba(0,102,255,0.08);color:#0066ff;
@@ -179,7 +175,7 @@ h5{font-size:14px;color:#222;}
 }
 .history-data{padding-left:2px;width:100%;}
 .history-data .profit-total{font-size:16px;margin:4px 0;}
-.history-data .perkm-blue, .history-data .profit-small{font-size:13px;margin:3px 0;}
+.history-data .perkm-blue,.history-data .profit-small{font-size:13px;margin:3px 0;}
 .history-detail{
     overflow:hidden;max-height:0;
     transition:max-height 0.42s cubic-bezier(0.4,0,0.2,1);
@@ -224,17 +220,15 @@ h5{font-size:14px;color:#222;}
             <div class="main-title">主单基础信息</div>
             <button class="toggle-clear-btn" id="clearMainBtn">清空主单</button>
         </div>
+
+        <!-- 保留载重选择，删除百公里油耗输入框 -->
         <div class="item">
-            <label>载货吨位（自动匹配油耗）</label>
-            <select id="loadWeightSelect">
-                <option value="17">1～3吨｜油耗17L/100km</option>
-                <option value="21" selected>3～7吨｜油耗21L/100km</option>
-                <option value="23">7吨以上｜油耗23L/100km</option>
+            <label>载货吨位</label>
+            <select id="loadWeight">
+                <option value="17">空车/轻载 油耗17L</option>
+                <option value="21" selected>标载 油耗21L</option>
+                <option value="23">重载 油耗23L</option>
             </select>
-        </div>
-        <div class="item">
-            <label>百公里油耗(L)（可手动修改）</label>
-            <input type="number" id="oil100" value="21" step="0.1">
         </div>
         <div class="item">
             <label>柴油单价(元/升)</label>
@@ -252,6 +246,7 @@ h5{font-size:14px;color:#222;}
             <label>主单运费收入(元)</label>
             <input type="number" id="income" placeholder="1800">
         </div>
+
         <button class="btn-row toggle-btn" id="toggleBtn">展开多单拼单设置</button>
         <div class="pan-box" id="panBox">
             <div class="single-pin">
@@ -348,10 +343,9 @@ let isHistoryOpen = false;
 resultBox.style.display = "none";
 
 const oilPriceInput = document.getElementById('oilPrice');
-const oil100Input = document.getElementById("oil100");
-const loadSelect = document.getElementById('loadWeightSelect');
+const loadSelect = document.getElementById("loadWeight");
 
-//柴油单价记忆
+// 柴油价格本地缓存
 const savedOilPrice = localStorage.getItem('savedOilPrice');
 if(savedOilPrice){
     oilPriceInput.value = savedOilPrice;
@@ -359,11 +353,6 @@ if(savedOilPrice){
 oilPriceInput.addEventListener('input',function(){
     localStorage.setItem('savedOilPrice', this.value);
 });
-
-//下拉选择自动填充油耗
-loadSelect.onchange = function(){
-    oil100Input.value = this.value;
-}
 
 function switchPage() {
     isHistoryOpen = !isHistoryOpen;
@@ -410,8 +399,8 @@ function renderHistory(){
             <div class="history-top">
                 <div class="history-time">${item.time}</div>
                 <div class="history-btn-group">
-                    <button class="history-del" data-delidx="${idx}">删除</button>
-                    <div class="history-expand" data-index="${idx}">查看明细</div>
+                    <button class="history-del" data-idx="${idx}">删除</button>
+                    <div class="history-expand" data-hidx="${idx}">查看明细</div>
                 </div>
             </div>
             <div class="history-data">
@@ -422,7 +411,7 @@ function renderHistory(){
                 ${item.pinHtml}
                 <div>${item.tipText}</div>
             </div>
-            <div class="history-detail" data-detailidx="${idx}">
+            <div class="history-detail" data-didx="${idx}">
                 <div class="history-detail-glass">
                     ${item.fullDetail}
                 </div>
@@ -430,18 +419,19 @@ function renderHistory(){
         </div>`;
     })
     listWrap.innerHTML = html;
-    document.querySelectorAll('.history-expand').forEach(dom=>{
-        dom.onclick = function(){
-            const idx = this.getAttribute('data-index');
-            const detailDom = document.querySelector(`.history-detail[data-detailidx="${idx}"]`);
-            detailDom.classList.toggle('open');
-            this.innerText = detailDom.classList.contains('open') ? '收起明细' : '查看明细';
+
+    document.querySelectorAll('.history-del').forEach(btn=>{
+        btn.onclick = function(){
+            const i = Number(this.dataset.idx);
+            delOneHistory(i);
         }
     })
-    document.querySelectorAll('.history-del').forEach(dom=>{
-        dom.onclick = function(){
-            const idx = this.getAttribute('data-delidx');
-            delOneHistory(idx);
+    document.querySelectorAll('.history-expand').forEach(btn=>{
+        btn.onclick = function(){
+            const i = this.dataset.hidx;
+            const detailDom = document.querySelector(`.history-detail[data-didx="${i}"]`);
+            detailDom.classList.toggle('open');
+            this.innerText = detailDom.classList.contains('open') ? '收起明细' : '查看明细';
         }
     })
 }
@@ -458,7 +448,7 @@ const toggleBtn = document.getElementById('toggleBtn');
 const panBox = document.getElementById('panBox');
 toggleBtn.onclick = function(){
     panBox.classList.toggle('show');
-    panBox.classList.contains('show') ? this.innerText = '收起多单拼单设置' : this.innerText = '展开多单拼单设置';
+    this.innerText = panBox.classList.contains('show') ? '收起多单拼单设置' : '展开多单拼单设置';
 }
 document.getElementById('clearAllPinBtn').onclick = function(e){
     e.stopPropagation();
@@ -515,7 +505,7 @@ function calcSinglePin(totalKm, highKm, money, oil100, oilPrice, roadPerKm){
 }
 
 function calcAll(isSaveRecord = false) {
-    const oil100 = Number(document.getElementById('oil100').value) || 21;
+    const oil100 = Number(loadSelect.value);
     const oilPrice = Number(document.getElementById('oilPrice').value) || 0;
     let roadPerKmInput = document.getElementById('roadPerKm').value;
     const roadPerKm = roadPerKmInput === "" ? 1 : Number(roadPerKmInput);
@@ -606,19 +596,19 @@ function calcAll(isSaveRecord = false) {
 
     let fullDetail = `<div class="history-block block-income">
         <div class="history-block-title">收入汇总</div>
-        <p><span>主单运费</span><span>${income.toFixed(2)} 元</span></p>`;
-    if(p1TotalKm>0) fullDetail += `<p><span>拼单1运费</span><span>${p1money.toFixed(2)} 元</span></p>`;
-    if(p2TotalKm>0) fullDetail += `<p><span>拼单2运费</span><span>${p2money.toFixed(2)} 元</span></p>`;
-    if(p3TotalKm>0) fullDetail += `<p><span>拼单3运费</span><span>${p3money.toFixed(2)} 元</span></p>`;
+        <p><span>主单运费</span><span class="history-profit-text">${income.toFixed(2)} 元</span></p>`;
+    if(p1TotalKm>0) fullDetail += `<p><span>拼单1运费</span><span class="history-profit-text">${p1money.toFixed(2)} 元</span></p>`;
+    if(p2TotalKm>0) fullDetail += `<p><span>拼单2运费</span><span class="history-profit-text">${p2money.toFixed(2)} 元</span></p>`;
+    if(p3TotalKm>0) fullDetail += `<p><span>拼单3运费</span><span class="history-profit-text">${p3money.toFixed(2)} 元</span></p>`;
     fullDetail += `<p><span>总收入</span><span class="history-profit-text">${totalIncome.toFixed(2)} 元</span></p>
     </div>
     <div class="history-block block-main">
         <div class="history-block-title">主单成本明细</div>
         <p><span>行驶里程</span><span>${km} km</span></p>
-        <p><span>百公里油耗</span><span>${oil100} L</span></p>
-        <p><span>燃油费用</span><span>${mainOilCost.toFixed(2)} 元</span></p>
-        <p><span>高速过路费</span><span>${mainRoadCost.toFixed(2)} 元</span></p>
-        <p><span>主单总成本</span><span>${mainTotalCost.toFixed(2)} 元</span></p>
+        <p><span>载货油耗</span><span>${oil100} L/百公里</span></p>
+        <p><span>燃油费用</span><span class="history-cost-text">${mainOilCost.toFixed(2)} 元</span></p>
+        <p><span>高速过路费</span><span class="history-cost-text">${mainRoadCost.toFixed(2)} 元</span></p>
+        <p><span>主单总成本</span><span class="history-cost-text">${mainTotalCost.toFixed(2)} 元</span></p>
         <p><span>主单每公里成本</span><span class="history-cost-text">${mainPerKmCost.toFixed(2)} 元/公里</span></p>
         <p><span>主单纯利润</span><span class="history-profit-text">${mainProfit.toFixed(2)} 元</span></p>
         <p><span>主单每公里利润</span><span class="history-profit-text">${mainPerKmProfit.toFixed(2)} 元/公里</span></p>
@@ -631,10 +621,10 @@ function calcAll(isSaveRecord = false) {
             <p><span>总里程</span><span>${p1TotalKm} km</span></p>
             <p><span>高速里程</span><span>${pin1.realHigh} km</span></p>
             <p><span>下道路程</span><span>${pin1.roadKm} km</span></p>
-            <p><span>运费</span><span>${p1money.toFixed(2)} 元</span></p>
-            <p><span>燃油成本</span><span>${pin1.oil.toFixed(2)} 元</span></p>
-            <p><span>高速成本</span><span>${pin1.road.toFixed(2)} 元</span></p>
-            <p><span>总成本</span><span>${pin1.cost.toFixed(2)} 元</span></p>
+            <p><span>运费</span><span class="history-profit-text">${p1money.toFixed(2)} 元</span></p>
+            <p><span>燃油成本</span><span class="history-cost-text">${pin1.oil.toFixed(2)} 元</span></p>
+            <p><span>高速费</span><span class="history-cost-text">${pin1.road.toFixed(2)} 元</span></p>
+            <p><span>总成本</span><span class="history-cost-text">${pin1.cost.toFixed(2)} 元</span></p>
             <p><span>拼单每公里成本</span><span class="history-cost-text">${p1PerKmCost.toFixed(2)} 元/公里</span></p>
             <p><span>利润</span><span class="history-profit-text">${pin1.profit.toFixed(2)} 元 ${pin1.profit < 100 ? '(不建议拼)' : ''}</span></p>
             <p><span>拼单每公里利润</span><span class="history-profit-text">${p1PerKm.toFixed(2)} 元/公里</span></p>
@@ -647,10 +637,10 @@ function calcAll(isSaveRecord = false) {
             <p><span>总里程</span><span>${p2TotalKm} km</span></p>
             <p><span>高速里程</span><span>${pin2.realHigh} km</span></p>
             <p><span>下道路程</span><span>${pin2.roadKm} km</span></p>
-            <p><span>运费</span><span>${p2money.toFixed(2)} 元</span></p>
-            <p><span>燃油成本</span><span>${pin2.oil.toFixed(2)} 元</span></p>
-            <p><span>高速成本</span><span>${pin2.road.toFixed(2)} 元</span></p>
-            <p><span>总成本</span><span>${pin2.cost.toFixed(2)} 元</span></p>
+            <p><span>运费</span><span class="history-profit-text">${p2money.toFixed(2)} 元</span></p>
+            <p><span>燃油成本</span><span class="history-cost-text">${pin2.oil.toFixed(2)} 元</span></p>
+            <p><span>高速费</span><span class="history-cost-text">${pin2.road.toFixed(2)} 元</span></p>
+            <p><span>总成本</span><span class="history-cost-text">${pin2.cost.toFixed(2)} 元</span></p>
             <p><span>拼单每公里成本</span><span class="history-cost-text">${p2PerKmCost.toFixed(2)} 元/公里</span></p>
             <p><span>利润</span><span class="history-profit-text">${pin2.profit.toFixed(2)} 元 ${pin2.profit < 100 ? '(不建议拼)' : ''}</span></p>
             <p><span>拼单每公里利润</span><span class="history-profit-text">${p2PerKm.toFixed(2)} 元/公里</span></p>
@@ -663,10 +653,10 @@ function calcAll(isSaveRecord = false) {
             <p><span>总里程</span><span>${p3TotalKm} km</span></p>
             <p><span>高速里程</span><span>${pin3.realHigh} km</span></p>
             <p><span>下道路程</span><span>${pin3.roadKm} km</span></p>
-            <p><span>运费</span><span>${p3money.toFixed(2)} 元</span></p>
-            <p><span>燃油成本</span><span>${pin3.oil.toFixed(2)} 元</span></p>
-            <p><span>高速成本</span><span>${pin3.road.toFixed(2)} 元</span></p>
-            <p><span>总成本</span><span>${pin3.cost.toFixed(2)} 元</span></p>
+            <p><span>运费</span><span class="history-profit-text">${p3money.toFixed(2)} 元</span></p>
+            <p><span>燃油成本</span><span class="history-cost-text">${pin3.oil.toFixed(2)} 元</span></p>
+            <p><span>高速费</span><span class="history-cost-text">${pin3.road.toFixed(2)} 元</span></p>
+            <p><span>总成本</span><span class="history-cost-text">${pin3.cost.toFixed(2)} 元</span></p>
             <p><span>拼单每公里成本</span><span class="history-cost-text">${p3PerKmCost.toFixed(2)} 元/公里</span></p>
             <p><span>利润</span><span class="history-profit-text">${pin3.profit.toFixed(2)} 元 ${pin3.profit < 100 ? '(不建议拼)' : ''}</span></p>
             <p><span>拼单每公里利润</span><span class="history-profit-text">${p3PerKm.toFixed(2)} 元/公里</span></p>
@@ -678,7 +668,7 @@ function calcAll(isSaveRecord = false) {
         <p><span>主单里程</span><span>${km} 公里</span></p>
         <p><span>拼单总里程</span><span>${allPinKm} 公里</span></p>
         <p><span>全程总里程</span><span>${totalKmAll} 公里</span></p>
-        <p><span>全部总成本</span><span>${totalCost.toFixed(2)} 元</span></p>
+        <p><span>全部总成本</span><span class="history-cost-text">${totalCost.toFixed(2)} 元</span></p>
         <p><span>每公里净利润</span><span class="history-profit-text">${perKmProfit.toFixed(2)} 元/公里</span></p>
     </div>`;
 
@@ -702,15 +692,15 @@ function calcAll(isSaveRecord = false) {
     `;
 
     const detailBtn = document.getElementById('resultDetailBtn');
-    const newDetailWrap = document.getElementById('detailWrap');
+    const wrapDom = document.getElementById('detailWrap');
     detailBtn.onclick = function(){
-        newDetailWrap.classList.toggle('open');
-        this.innerText = newDetailWrap.classList.contains('open') ? '收起明细' : '查看明细';
+        wrapDom.classList.toggle('open');
+        this.innerText = wrapDom.classList.contains('open') ? '收起明细' : '查看明细';
     }
 
     if(isSaveRecord){
         const now = new Date();
-        const timeStr = now.getFullYear()+"-"+(now.getMonth()+1)+"-"+now.getDate()+" "+now.getHours()+":"+String(now.getMinutes()).padStart(2,'0');
+        const timeStr = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
         const historyItem = {
             time: timeStr,
             totalProfit: totalProfit.toFixed(2),
