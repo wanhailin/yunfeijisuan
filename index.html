@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <title>货车每公里成本计算器</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui;-webkit-tap-highlight-color: transparent;}
@@ -256,9 +255,9 @@ h5{font-size:16px;color:#222;}
             <input type="number" id="income" placeholder="1800">
         </div>
 
-        <!-- 放空模块，已移除油耗选择框，固定16L -->
+        <!-- 放空模块 修改：标题简化为【放空成本】，删除多余文字 -->
         <div style="margin-top:10px;border-top:1px solid #e1e5eb;padding-top:14px;">
-            <div class="main-title" style="margin-bottom:12px;">🚗放空里程（去装货空驶）</div>
+            <div class="main-title" style="margin-bottom:12px;">放空成本</div>
             <div class="item">
                 <label>放空总里程(km)</label>
                 <input type="number" id="emptyKm" placeholder="空驶到装货点距离">
@@ -366,7 +365,7 @@ const resultBox = document.getElementById('res');
 let isHistoryOpen = false;
 resultBox.style.display = "none";
 
-//====本地缓存 数据持久化（移除放空油耗选项）====
+//====本地缓存 数据持久化====
 const inputIds = [
     'loadWeight','oilPrice','km','roadPerKm','income',
     'emptyKm','emptyHighKm',
@@ -374,7 +373,6 @@ const inputIds = [
     'p2TotalKm','p2HighKm','p2money',
     'p3TotalKm','p3HighKm','p3money'
 ];
-//读取缓存
 function loadCache(){
     const cacheStr = localStorage.getItem("truckCalcCache");
     if(!cacheStr) return;
@@ -386,7 +384,6 @@ function loadCache(){
         }
     })
 }
-//保存缓存
 function saveCache(){
     const cache = {};
     inputIds.forEach(id=>{
@@ -570,7 +567,8 @@ function calcAll(isSaveRecord = false) {
     let emptyRealHigh = emptyHighKm;
     if(emptyRealHigh > emptyKm) emptyRealHigh = emptyKm;
     const emptyOilCost = emptyKm / 100 * emptyOil100 * oilPrice;
-    const emptyRoadCost = emptyRealHigh * roadPerKm;
+    // ==========核心修改：放空高速费固定1元/公里，不再跟随主单高速费==========
+    const emptyRoadCost = emptyRealHigh * 1;
     const emptyTotalCost = emptyOilCost + emptyRoadCost;
 
     //数值校验
@@ -666,6 +664,7 @@ function calcAll(isSaveRecord = false) {
     if(totalProfit > 0) colorClass = "profit-positive";
     if(totalProfit < 0) colorClass = "profit-negative";
 
+    //【修复点】放空明细增加放空高速费展示
     let fullDetail = `<div class="history-block block-income">
         <div class="history-block-title">收入汇总</div>
         <p><span>主单运费</span><span class="history-profit-text">${income.toFixed(2)} 元</span></p>`;
@@ -676,7 +675,7 @@ function calcAll(isSaveRecord = false) {
     </div>
 
     <div class="history-block block-empty">
-        <div class="history-block-title">放空空驶成本（固定空车油耗16L/100km）</div>
+        <div class="history-block-title">放空空驶成本（固定空车油耗16L/100km，高速费固定1元/公里）</div>
         <p><span>放空里程</span><span>${emptyKm} km</span></p>
         <p><span>放空高速里程</span><span>${emptyRealHigh} km</span></p>
         <p><span>放空燃油费</span><span class="history-cost-text">${emptyOilCost.toFixed(2)} 元</span></p>
@@ -767,7 +766,7 @@ function calcAll(isSaveRecord = false) {
             <div class="perkm-blue">每公里收益（含放空）：${perKmProfit.toFixed(2)} 元</div>
             <div class="perkm-red">主单每公里成本(含放空)：${mainPerKmCost.toFixed(2)} 元/公里</div>
             <div class="profit-small">主单纯利润（扣除放空）：${mainProfit.toFixed(2)} 元</div>
-            ${emptyKm>0 ? `<div class="warn">⚠️放空成本：${emptyTotalCost.toFixed(2)} 元（空车固定油耗16L）</div>` : ""}
+            ${emptyKm>0 ? `<div class="warn">⚠️放空成本：${emptyTotalCost.toFixed(2)} 元</div>` : ""}
         </div>
         <div class="result-block">
             ${pinHtml}
