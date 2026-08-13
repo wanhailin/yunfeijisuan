@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>货运成本计算器</title>
 <style>
 :root{
@@ -44,6 +44,12 @@ body.light{
     --divider:rgba(0,0,0,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
+html,body{
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
 body{padding:12px;padding-bottom:80px;color:var(--text);background:var(--bg);min-height:100vh;}
 .num-font{font-family:"SF Mono",Consolas,monospace;}
 .page{display:none;max-width:780px;margin:0 auto;}
@@ -668,6 +674,13 @@ function calculate(){
         tip:tipText,
         detail:detailHtml
     });
+    // 计算完成自动滚动到汇总结果
+    setTimeout(() => {
+        resultBox.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }, 100);
 }
 function generateImage(){
     if(!lastCalcData.totalProfit && lastCalcData.totalProfit !== 0){
@@ -756,7 +769,6 @@ document.addEventListener('DOMContentLoaded',function(){
     };
     // 清除：保留柴油单价、高速单价，清空其他内容和历史记录
     document.getElementById('btnResetAll').onclick = function(){
-        safeRemove("truck_calc_cache");
         safeRemove("truck_calc_history");
         document.getElementById("mainKm").value = "";
         document.getElementById("mainMoney").value = "";
