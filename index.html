@@ -8,6 +8,7 @@
 :root{
     --bg:#050b18;
     --card:#0f172a;
+    --card-2:#1e293b;
     --card-border:rgba(255,255,255,0.08);
     --text:#e2e8f0;
     --text-sub:#94a3b8;
@@ -27,6 +28,7 @@
 body.light{
     --bg:#f1f5f9;
     --card:#ffffff;
+    --card-2:#f8fafc;
     --card-border:rgba(0,0,0,0.08);
     --text:#0f172a;
     --text-sub:#475569;
@@ -62,7 +64,7 @@ body{padding:12px;padding-bottom:80px;color:var(--text);background:var(--bg);min
 .header .right-btns{right:12px;}
 .icon-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;}
 body.light .icon-btn{background:rgba(0,0,0,0.04);}
-.reset-btn{height:34px;padding:0 10px;font-size:12px;color:var(--danger);border:1px solid var(--danger-border);background:var(--danger-bg);border-radius:10px;cursor:pointer;}
+.reset-btn{height:34px;padding:0 10px;font-size:12;color:var(--danger);border:1px solid var(--danger-border);background:var(--danger-bg);border-radius:10;cursor:pointer;}
 .card{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px;margin-bottom:12px;}
 .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .card-title{font-size:14px;font-weight:700;color:var(--text-sub);display:flex;align-items:center;gap:8px;}
@@ -73,7 +75,7 @@ body.light .icon-btn{background:rgba(0,0,0,0.04);}
 .form-item.full{grid-column:span 2;}
 .form-item label{font-size:12px;color:var(--text-sub);margin-bottom:6px;display:block;}
 .input-group{display:flex;align-items:center;gap:6px;}
-.input-group .adj-btn{width:36px;height:46px;flex-shrink:0;border-radius:10px;border:1px solid var(--input-border);background:var(--input);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;}
+.input-group .adj-btn{width:36px;height:46;flex-shrink:0;border-radius:10px;border:1px solid var(--input-border);background:var(--input);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;}
 .form-item input,.form-item select{width:100%;height:46px;padding:0 12px;border:1px solid var(--input-border);border-radius:10px;font-size:15px;color:var(--text);background:var(--input);outline:none;}
 .form-item input:focus,.form-item select:focus{border-color:var(--input-focus);}
 .input-group input{text-align:center;}
@@ -135,7 +137,7 @@ body.light .sum-box{background:rgba(0,0,0,0.02);}
 .tip-warn{background:#fffbeb;color:#d97706;border:1px solid #fcd34d;}
 .tip-bad{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border);}
 .btn-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
-.btn-row button{flex:1;min-width:100px;height:40px;border-radius:999px;font-size:13px;cursor:pointer;border:none;}
+.btn-row button{flex:1;min-width:100px;height:40px;border-radius:999px;font-size:13px;cursor:border:none;}
 .btn-detail{background:rgba(255,255,255,0.08);border:1px solid var(--card-border);color:var(--text);}
 body.light .btn-detail{background:rgba(0,0,0,0.04);}
 .btn-image{background:var(--primary);border:1px solid var(--primary);color:#fff;}
@@ -152,10 +154,10 @@ body.light .btn-detail{background:rgba(0,0,0,0.04);}
 .his-item{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px;margin-bottom:12px;}
 .his-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .his-time{font-size:12px;color:var(--text-sub);}
-.his-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.his-btns{display:flex;gap:6;flex-wrap:wrap;justify-content:flex-end;}
 .his-btn{font-size:11px;padding:4px 10px;border-radius:999px;border:none;cursor:pointer;font-weight:600;}
 .his-btn.del{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border);}
-.his-btn.view{background:rgba(56,189,248,0.08);color:var(--primary-light);border:1px solid rgba(56,189,248,0.18);}
+.his-btn.view{background:rgba(56,189,0.08);color:var(--primary-light);border:1px solid rgba(56,189,248,0.18);}
 .his-btn.use{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
 .his-sum .big{font-size:22px;font-weight:900;margin-bottom:8px;}
 .his-sum .big.ok{color:var(--success);}
@@ -170,7 +172,7 @@ body.light .btn-detail{background:rgba(0,0,0,0.04);}
 .image-modal img{max-width:100%;border-radius:12px;display:block;margin-bottom:12px;}
 .image-modal .close-btn{width:100%;height:44px;border-radius:12px;background:var(--primary);color:#fff;border:none;font-size:15px;cursor:pointer;}
 @media (max-width:640px){
-    .core-row{grid-template-columns:1fr;justify-items:center;}
+    .core-row{grid-template-columns:1;justify-items:center;}
     .core-list{width:100%;}
     .profit-top .num{font-size:32px;}
     .btn-row button{flex:1 1 45%;}
@@ -188,7 +190,7 @@ body.light .btn-detail{background:rgba(0,0,0,0.04);}
             <button class="reset-btn" id="btnResetAll">清除</button>
         </div>
         <h1>货运成本计算器</h1>
-        <p>油费+高速费成本测算</p>
+        <p>油费+高速费+信息费 成本测算</p>
     </div>
     <div class="card">
         <div class="card-head">
@@ -219,14 +221,18 @@ body.light .btn-detail{background:rgba(0,0,0,0.04);}
             <div class="form-item">
                 <label>高速单价 元/km</label>
                 <div class="input-group">
-                    <button class="adj-btn" data-adj="roadPrice" data-step="-0.1">−</button>
+                    <button class="adj-btn" data-step="-0.1" data-adj="roadPrice">−</button>
                     <input type="number" step="0.1" min="0" id="roadPrice" value="1.1">
                     <button class="adj-btn" data-adj="roadPrice" data-step="0.1">+</button>
                 </div>
             </div>
-            <div class="form-item full">
+            <div class="form-item">
                 <label>主单运费 元</label>
                 <input type="number" min="0" id="mainMoney">
+            </div>
+            <div class="form-item">
+                <label>信息费 元</label>
+                <input type="number" min="0" id="infoFee" value="0">
             </div>
         </div>
     </div>
@@ -248,7 +254,7 @@ body.light .btn-detail{background:rgba(0,0,0,0.04);}
             </div>
         </div>
     </div>
-    <button class="btn-small" style="width:100%;background:var(--success);color:#fff;border:none;height:50px;font-size:16px;margin-bottom:12px;border-radius:14px;" id="btnTogglePin">展开多拼单录入</button>
+    <button class="btn-small" style="width:100%;background:var(--primary);color:#fff;border:none;height:50px;font-size:16px;margin-bottom:12px;border-radius:14px;" id="btnTogglePin">展开多拼单录入</button>
     <div class="pin-box" id="pinBox">
         <div class="card">
             <div class="card-head">
@@ -308,14 +314,14 @@ body.light .btn-detail{background:rgba(0,0,0,0.04);}
     </div>
     <div class="result" id="resultBox">
         <div class="profit-top" id="profitBox">
-            <div class="label">单趟净赚（仅油+高速）</div>
+            <div class="label">单趟净赚（已扣信息费）</div>
             <div class="num num-font" id="totalProfit">0.00 元</div>
         </div>
         <div class="core-row">
             <div class="gauge">
                 <div class="gauge-circle">
                     <svg viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7" />
+                        <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,0.08)" stroke-width="7" />
                         <circle id="gaugeBar" cx="50" cy="50" r="44" fill="none" stroke="var(--primary-light)" stroke-width="7" stroke-linecap="round" stroke-dasharray="276.46" stroke-dashoffset="276.46" />
                     </svg>
                     <div class="gauge-text">
@@ -347,6 +353,7 @@ body.light .btn-detail{background:rgba(0,0,0,0.04);}
             <div class="sum-row"><span>全部运费收入</span><span class="text-in" id="sumIn">0.00 元</span></div>
             <div class="sum-row"><span>燃油总支出</span><span class="text-out" id="sumOil">0.00 元</span></div>
             <div class="sum-row"><span>高速总支出</span><span class="text-out" id="sumRoad">0.00 元</span></div>
+            <div class="sum-row"><span>信息费支出</span><span class="text-out" id="sumInfo">0.00 元</span></div>
             <div class="sum-row"><span>可变总成本</span><span class="text-out" id="sumAll">0.00 元</span></div>
             <div class="tip" id="tipText">自动评估货源好坏</div>
         </div>
@@ -386,7 +393,7 @@ function getNum(id){
     var v = parseFloat(document.getElementById(id).value);
     return isNaN(v) || v < 0 ? 0 : v;
 }
-var cacheKeys = ['oilUse','oilPrice','roadPrice','mainKm','mainMoney','emptyKm','emptyHigh',
+var cacheKeys = ['oilUse','oilPrice','roadPrice','mainKm','mainMoney','infoFee','emptyKm','emptyHigh',
     'p1km','p1high','p1money','p2km','p2high','p2money','p3km','p3high','p3money','theme'];
 function safeSet(key, value){
     try{ localStorage.setItem(key, value); }catch(e){}
@@ -533,12 +540,13 @@ function calculate(){
     var roadPrice = getNum("roadPrice");
     var mainKm = getNum("mainKm");
     var mainMoney = getNum("mainMoney");
+    var infoFee = getNum("infoFee");
     var emptyKm = getNum("emptyKm");
     var emptyHigh = getNum("emptyHigh");
     var mainOilCost = mainKm * oilUse / 100 * oilPrice;
     var mainRoadCost = mainKm * roadPrice;
     var mainAllCost = mainOilCost + mainRoadCost;
-    var mainProfit = mainMoney - mainAllCost;
+    var mainProfit = mainMoney - mainAllCost - infoFee;
     var mainPerCost = mainKm > 0 ? mainAllCost / mainKm : 0;
     var emptyOilCost = emptyKm * EMPTY_OIL_RATE / 100 * oilPrice;
     var emptyRoadCost = emptyHigh * roadPrice;
@@ -561,7 +569,7 @@ function calculate(){
     var allIncome = mainMoney + pinMoneySum;
     var allOilCost = mainOilCost + emptyOilCost + pinOilCost;
     var allRoadCost = mainRoadCost + emptyRoadCost + pinRoadCost;
-    var allCost = allOilCost + allRoadCost;
+    var allCost = allOilCost + allRoadCost + infoFee;
     var totalProfit = allIncome - allCost;
     var totalKm = mainKm + emptyKm + pinKmSum;
     var perKmProfit = totalKm > 0 ? totalProfit / totalKm : 0;
@@ -582,6 +590,7 @@ function calculate(){
     document.getElementById("sumIn").innerText = formatMoney(allIncome) + " 元";
     document.getElementById("sumOil").innerText = formatMoney(allOilCost) + " 元";
     document.getElementById("sumRoad").innerText = formatMoney(allRoadCost) + " 元";
+    document.getElementById("sumInfo").innerText = formatMoney(infoFee) + " 元";
     document.getElementById("sumAll").innerText = formatMoney(allCost) + " 元";
     var profitBox = document.getElementById("profitBox");
     if(totalProfit >=0){
@@ -646,20 +655,32 @@ function calculate(){
         '<div class="detail-row"><span>里程</span><span>'+mainKm.toFixed(0)+' km</span></div>'+
         '<div class="detail-row"><span>燃油('+oilUse+'L/100km)</span><span class="text-out">'+formatMoney(mainOilCost)+' 元</span></div>'+
         '<div class="detail-row"><span>高速费</span><span class="text-out">'+formatMoney(mainRoadCost)+' 元</span></div>'+
-        '<div class="detail-row"><span>主单总成本</span><span class="text-out">'+formatMoney(mainAllCost)+' 元</span></div></div>';
+        '<div class="detail-row"><span>信息费</span><span class="text-out">'+formatMoney(infoFee)+' 元</span></div>'+
+        '<div class="detail-row"><span>主单总成本</span><span class="text-out">'+formatMoney(mainAllCost + infoFee)+' 元</span></div></div>';
     detailHtml += '<div class="detail-block"><div class="detail-title">放空成本</div>'+
         '<div class="detail-row"><span>放空里程</span><span>'+emptyKm.toFixed(0)+' km</span></div>'+
         '<div class="detail-row"><span>放空油费</span><span class="text-out">'+formatMoney(emptyOilCost)+' 元</span></div>'+
         '<div class="detail-row"><span>放空高速</span><span class="text-out">'+formatMoney(emptyRoadCost)+' 元</span></div></div>';
     if(pinCount>0){
-        detailHtml += '<div class="detail-block"><div class="detail-title">拼单成本</div>'+
-        '<div class="detail-row"><span>拼单总里程</span><span>'+pinKmSum.toFixed(0)+' km</span></div>'+
-        '<div class="detail-row"><span>拼单油费</span><span class="text-out">'+formatMoney(pinOilCost)+' 元</span></div>'+
-        '<div class="detail-row"><span>拼单高速</span><span class="text-out">'+formatMoney(pinRoadCost)+' 元</span></div></div>';
+        detailHtml += '<div class="detail-block"><div class="detail-title">拼单成本</div>';
+        ["p1","p2","p3"].forEach(function(p, idx){
+            var k = getNum(p+"km");
+            var h = getNum(p+"high");
+            var m = getNum(p+"money");
+            if(k > 0 && m > 0){
+                var singleOil = k * oilUse / 100 * oilPrice;
+                var singleRoad = h * roadPrice;
+                detailHtml += '<div class="detail-row"><span>拼单'+(idx+1)+' 里程</span><span>'+k.toFixed(0)+' km</span></div>'+
+                '<div class="detail-row"><span>拼单'+(idx+1)+' 油费</span><span class="text-out">'+formatMoney(singleOil)+' 元</span></div>'+
+                '<div class="detail-row"><span>拼单'+(idx+1)+' 高速费</span><span class="text-out">'+formatMoney(singleRoad)+' 元</span></div>';
+            }
+        });
+        detailHtml += '</div>';
     }
-    detailHtml += '<div class="detail-block"><div class="detail-title">汇总</div>'+
+    detailHtml += '<div class="detail-block"><div class="detail-title">全程汇总</div>'+
         '<div class="detail-row"><span>全部油费</span><span class="text-out">'+formatMoney(allOilCost)+' 元</span></div>'+
         '<div class="detail-row"><span>全部高速</span><span class="text-out">'+formatMoney(allRoadCost)+' 元</span></div>'+
+        '<div class="detail-row"><span>信息费合计</span><span class="text-out">'+formatMoney(infoFee)+' 元</span></div>'+
         '<div class="detail-row"><span>合计可变成本</span><span class="text-out">'+formatMoney(allCost)+' 元</span></div></div>';
     document.getElementById("detailHtml").innerHTML = detailHtml;
     var saveData = {};
@@ -674,7 +695,6 @@ function calculate(){
         tip:tipText,
         detail:detailHtml
     });
-    // 计算完成自动滚动到汇总结果
     setTimeout(() => {
         resultBox.scrollIntoView({
             behavior: "smooth",
@@ -763,11 +783,10 @@ document.addEventListener('DOMContentLoaded',function(){
     };
     document.getElementById('btnClearPin').onclick = function(){
         ['p1km','p1high','p1money','p2km','p2high','p2money','p3km','p3high','p3money'].forEach(function(id){
-            document.getElementById(id).value='';
+            document.getElementById(id).value = '';
         });
         saveCache();
     };
-    // 清除：保留柴油单价、高速单价，清空其他内容和历史记录
     document.getElementById('btnResetAll').onclick = function(){
         safeRemove("truck_calc_history");
         document.getElementById("mainKm").value = "";
