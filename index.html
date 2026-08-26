@@ -1,904 +1,3169 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>货运成本计算器</title>
-<style>
-:root{
-    --bg:#050b18;
-    --card:#0f172a;
-    --card-border:rgba(255,255,255,0.08);
-    --text:#e2e8f0;
-    --text-sub:#94a3b8;
-    --input:#1e293b;
-    --input-border:rgba(255,255,0.08);
-    --input-focus:#38bdf8;
-    --primary:#3b82f6;
-    --primary-light:#7dd3fc;
-    --success:#42e994;
-    --success-bg:rgba(66,233,148,0.08);
-    --success-border:rgba(66,233,148,0.2);
-    --danger:#ff7b7b;
-    --danger-bg:rgba(255,123,123,0.08);
-    --danger-border:rgba(255,123,123,0.2);
-    --divider:rgba(255,255,255,0.08);
-}
-body.light{
-    --bg:#f1f5f9;
-    --card:#ffffff;
-    --card-border:rgba(0,0,0,0.08);
-    --text:#0f172a;
-    --text-sub:#475569;
-    --input:#f8fafc;
-    --input-border:rgba(0,0,0,0.1);
-    --input-focus:#2563eb;
-    --primary:#2563eb;
-    --primary-light:#0369a1;
-    --success:#059669;
-    --success-bg:#ecfdf5;
-    --success-border:#a7f3d0;
-    --danger:#dc2626;
-    --danger-bg:#fef2f2;
-    --danger-border:#fecaca;
-    --divider:rgba(0,0,0,0.08);
-}
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
-html,body{
-    touch-action: manipulation;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-    -webkit-tap-highlight-color: transparent;
-}
-body{padding:12px;padding-bottom:90px;color:var(--text);background:var(--bg);min-height:100vh;}
-.num-font{font-family:"SF Mono",Consolas,monospace;}
-.page{display:none;max-width:780px;margin:0 auto;}
-.page.active{display:block;}
-.header{position:relative;padding:14px;margin-bottom:12px;border-radius:16px;background:var(--card);border:1px solid var(--card-border);}
-.header h1{font-size:19px;font-weight:900;text-align:center;}
-.header p{text-align:center;font-size:11px;color:var(--text-sub);margin-top:4px;}
-.header .left-btns,.header .right-btns{position:absolute;top:50%;transform:translateY(-50%);display:flex;gap:8px;}
-.header .left-btns{left:12px;}
-.header .right-btns{right:12px;}
-.icon-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
-body.light .icon-btn{background:rgba(0,0,0,0.04);}
-.reset-btn{height:34px;padding:0 10px;font-size:12px;color:var(--danger);border:1px solid var(--danger-border);background:var(--danger-bg);border-radius:10px;cursor:pointer;}
-.card{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px;margin-bottom:12px;}
-.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.card-title{font-size:14px;font-weight:700;color:var(--text-sub);display:flex;align-items:center;gap:8px;}
-.card-title::before{content:"";width:3px;height:16px;border-radius:2px;background:var(--primary);}
-.btn-small{font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--danger-border);background:var(--danger-bg);color:var(--danger);font-weight:600;cursor:pointer;}
-.btn-voice{background:rgba(66,233,148,0.1);color:#42e994;border-color:rgba(66,233,148,0.2);}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.form-item{margin-bottom:10px;}
-.form-item.full{grid-column:span 2;}
-.form-item label{font-size:12px;color:var(--text-sub);margin-bottom:6px;display:block;}
-.input-group{display:flex;align-items:center;gap:6px;}
-.input-group .adj-btn{width:36px;height:46px;flex-shrink:0;border-radius:10px;border:1px solid var(--input-border);background:var(--input);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;}
-.form-item input,.form-item select{width:100%;height:46px;padding:0 12px;border:1px solid var(--input-border);border-radius:10px;font-size:15px;color:var(--text);background:var(--input);outline:none;}
-.form-item input:focus,.form-item select:focus{border-color:var(--input-focus);}
-.input-group input{text-align:center;}
-.empty-card{border-color:var(--danger-border);background:var(--danger-bg);}
-.empty-card .card-head{margin-bottom:0;cursor:pointer;}
-.empty-card .card-body{display:none;padding-top:12px;margin-top:12px;border-top:1px dashed var(--divider);}
-.empty-card.open .card-body{display:block;}
-.empty-mile{font-size:12px;color:var(--text-sub);}
-.btn-toggle-pin{width:100%;background:var(--primary);color:#fff;border:none;height:50px;font-size:16px;margin-bottom:12px;border-radius:14px;cursor:pointer;font-weight:600;}
-.pin-box{display:none;margin-top:6px;}
-.pin-box.show{display:block;}
-.pin-item{background:var(--input);border:1px solid var(--card-border);border-radius:12px;padding:12px;margin-bottom:10px;}
-.pin-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
-.pin-head .name{font-size:14px;font-weight:700;}
-.pin-head .icon{font-size:18px;color:var(--primary-light);font-weight:bold;}
-.pin-clear{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--danger-border);background:var(--danger-bg);color:var(--danger);cursor:pointer;}
-.pin-body{display:none;padding-top:10px;margin-top:10px;border-top:1px dashed var(--divider);}
-.pin-body.show{display:block;}
-/* ========== 结果汇总：完全对齐截图样式 ========== */
-.result{display:none;border-radius:18px;padding:16px;margin-top:12px;background:#162238;border:1px solid rgba(255,255,255,0.1);}
-.result.show{display:block;}
-body.light .result{background:#f8fafc;border-color:rgba(0,0,0,0.1);}
-.profit-top-card{text-align:center;padding:16px 10px;border-radius:14px;background:#1c3448;margin-bottom:16px;}
-body.light .profit-top-card{background:#ecfdf5;}
-.profit-top-card .label{font-size:13px;color:#b0c4de;margin-bottom:8px;}
-body.light .profit-top-card .label{color:#065f46;}
-.profit-top-card .profit-big-num{font-size:42px;font-weight:900;color:#42e994;}
-body.light .profit-top-card .profit-big-num{color:#059669;}
-.result-row-wrap{display:grid;grid-template-columns:120px 1fr;gap:14px;margin-bottom:16px;align-items:center;}
-.gauge-wrap{text-align:center;}
-.gauge-circle{position:relative;width:110px;height:110px;margin:0 auto;}
-.gauge-circle svg{transform:rotate(-90deg);width:110px;height:110px;}
-.gauge-text{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;}
-.gauge-text .v{font-size:22px;font-weight:900;color:#7dd3fc;}
-body.light .gauge-text .v{color:#0284c7;}
-.gauge-text .t{font-size:11px;color:#b0c4de;margin-top:2px;}
-body.light .gauge-text .t{color:#64748b;}
-.gauge-name{font-size:12px;color:#b0c4de;margin-top:6px;}
-body.light .gauge-name{color:#64748b;}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.info-grid-item{background:#1e2f48;padding:12px 8px;border-radius:10px;text-align:center;}
-body.light .info-grid-item{background:#f1f5f9;}
-.info-grid-item .lab{font-size:11px;color:#b0c4de;margin-bottom:4px;}
-body.light .info-grid-item .lab{color:#64748b;}
-.info-grid-item .val{font-size:17px;font-weight:bold;}
-.c-green{color:#42e994;}
-.c-red{color:#ff7b7b;}
-.c-blue{color:#7dd3fc;}
-body.light .c-green{color:#059669;}
-body.light .c-red{color:#dc2626;}
-body.light .c-blue{color:#0284c7;}
-.list-block{background:#142036;border-radius:12px;padding:14px;margin-bottom:14px;}
-body.light .list-block{background:#f8fafc;}
-.list-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid #273854;}
-body.light .list-row{border-bottom-color:#e2e8f0;}
-.list-row:last-child{border-bottom:none;}
-.list-lab{color:#b0c4de;}
-body.light .list-lab{color:#64748b;}
-.val-in{color:#42e994;font-weight:bold;}
-.val-out{color:#ff7b7b;font-weight:bold;}
-body.light .val-in{color:#059669;}
-body.light .val-out{color:#dc2626;}
-.tip-box{text-align:center;padding:10px;border-radius:10px;font-size:14px;font-weight:bold;margin-bottom:16px;}
-.tip-good{background:rgba(66,233,148,0.12);color:#42e994;border:1px solid rgba(66,233,148,0.25);}
-.tip-warn{background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);}
-.tip-bad{background:rgba(255,123,123,0.12);color:#ff7b7b;border:1px solid rgba(255,123,123,0.25);}
-body.light .tip-good{background:#ecfdf5;color:#059669;border-color:#a7f3d0;}
-body.light .tip-warn{background:#fefce8;color:#d97706;border-color:#fde047;}
-body.light .tip-bad{background:#fef2f2;color:#dc2626;border-color:#fecaca;}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
-.btn-row button{flex:1;min-width:110px;height:44px;border-radius:12px;font-size:14px;border:none;font-weight:600;cursor:pointer;}
-.btn-detail{background:#233452;color:#cbd5e1;}
-body.light .btn-detail{background:#e2e8f0;color:#334155;}
-.btn-image{background:#2563eb;color:#fff;}
-.detail-box{overflow:hidden;max-height:0;transition:max-height 0.4s ease;margin-top:12px;}
-.detail-box.open{max-height:6000px;}
-.detail-inner{background:var(--input);border:1px solid var(--card-border);border-radius:14px;padding:14px;}
-.detail-block{padding-bottom:12px;margin-bottom:12px;border-bottom:1px dashed var(--divider);}
-.detail-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-.detail-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;}
-.detail-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--text-sub);padding:5px 0;}
-.text-in{color:var(--success);font-weight:700;}
-.text-out{color:var(--danger);font-weight:700;}
-.compare{display:none;background:var(--success-bg);border:1px solid var(--success-border);border-radius:12px;padding:14px;margin-bottom:14px;}
-.compare.warn{background:#fffbeb;border-color:#fcd34d;}
-.compare-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.compare-tag{padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(66,233,148,0.15);color:var(--success);border:1px solid var(--success-border);}
-.compare.warn .compare-tag{background:rgba(251,191,36,0.15);color:#d97706;border-color:#fcd34d;}
-.compare-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
-.compare-item{background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 6px;}
-body.light .compare-item{background:rgba(255,255,255,0.6);}
-.compare-item .n{font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px;}
-.compare-item .n.add{color:var(--success);font-size:18px;}
-.compare.warn .compare-item .n.add{color:#d97706;}
-.compare-item .d{font-size:10px;color:var(--text-sub);}
-.history-empty{text-align:center;color:var(--text-sub);padding:40px 16px;font-size:14px;}
-.his-item{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px;margin-bottom:12px;}
-.his-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.his-time{font-size:12px;color:var(--text-sub);}
-.his-btns{display:flex;gap:6px;flex-wrap:wrap;}
-.his-btn{font-size:11px;padding:4px 10px;border-radius:999px;border:none;cursor:pointer;font-weight:600;}
-.his-btn.del{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border);}
-.his-btn.view{background:rgba(56,189,248,0.08);color:var(--primary-light);border:1px solid rgba(56,189,248,0.18);}
-.his-btn.use{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
-.his-sum .big{font-size:22px;font-weight:900;margin-bottom:8px;}
-.his-sum .big.ok{color:var(--success);}
-.his-sum .big.no{color:var(--danger);}
-.his-sum p{font-size:13px;color:var(--text-sub);margin:5px 0;}
-.his-detail{overflow:hidden;max-height:0;transition:max-height 0.4s ease;margin-top:0;}
-.his-detail.open{max-height:5000px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--divider);}
-.image-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0.85);z-index:999;align-items:center;justify-content:center;padding:20px;}
-.image-modal.show{display:flex;}
-.image-modal .box{background:var(--card);border-radius:16px;padding:16px;max-width:90vw;max-height:90vh;overflow:auto;}
-.image-modal .box h3{font-size:16px;margin-bottom:12px;text-align:center;}
-.image-modal img{max-width:100%;border-radius:12px;display:block;margin-bottom:12px;}
-.image-modal .close-btn{width:100%;height:44px;border-radius:12px;background:var(--primary);color:#fff;border:none;font-size:15px;cursor:pointer;}
-.fixed-calc-btn{position:fixed;left:12px;right:12px;bottom:12px;height:52px;border:none;border-radius:14px;font-size:16px;font-weight:700;color:#fff;cursor:pointer;background:var(--primary);box-shadow:0 4px 20px rgba(59,130,246,0.35);z-index:99;}
-@media (max-width:640px){
-    .result-row-wrap{grid-template-columns:1fr;justify-items:center;}
-    .info-grid{width:100%;}
-    .profit-top-card .profit-big-num{font-size:36px;}
-    .btn-row button{flex:1 1 45%;}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>货运路线与利润计算器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { overflow-x: hidden; }
+        body {
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #0a0e1a;
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(255,107,53,0.10) 0%, transparent 45%),
+                radial-gradient(ellipse at 80% 100%, rgba(0,212,255,0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+            color: #e8eaf0;
+            min-height: 100vh;
+            padding: 16px;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+        .container { max-width: 560px; margin: 0 auto; width: 100%; }
+
+        /* ===== 头部 ===== */
+        .header {
+            text-align: center;
+            padding: 28px 20px 22px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 64px; height: 3px;
+            background: linear-gradient(90deg, #ff6b35, #00d4ff);
+            border-radius: 2px;
+        }
+        .header-title {
+            font-size: 23px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 7px;
+            letter-spacing: 1px;
+        }
+        .header-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== 玻璃卡片 ===== */
+        .glass-card {
+            background: rgba(255,255,255,0.035);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+
+        /* ===== 区块标题 ===== */
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::before {
+            content: '';
+            width: 3px; height: 16px;
+            background: linear-gradient(180deg, #ff6b35, #00d4ff);
+            border-radius: 2px;
+        }
+
+        /* ===== 分组标题 ===== */
+        .group-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 1px;
+            margin: 4px 0 10px;
+            padding-left: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .group-title .line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        /* ===== 表单 ===== */
+        .form-group { margin-bottom: 14px; }
+        .form-group:last-of-type { margin-bottom: 18px; }
+        .form-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            font-weight: 600;
+        }
+        .label-desc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.35);
+            font-weight: normal;
+            margin-left: auto;
+        }
+        .point-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px; height: 26px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-right: 10px;
+            color: #fff;
+        }
+        .point-a { background: linear-gradient(135deg, #ff6b35, #ff8c5a); box-shadow: 0 2px 10px rgba(255,107,53,0.4); }
+        .point-b { background: linear-gradient(135deg, #00d4ff, #00b8e6); box-shadow: 0 2px 10px rgba(0,212,255,0.4); }
+        .point-c { background: linear-gradient(135deg, #00d4ff, #00b8e6); box-shadow: 0 2px 10px rgba(0,212,255,0.4); }
+        .point-d { background: linear-gradient(135deg, #ff6b35, #ff8c5a); box-shadow: 0 2px 10px rgba(255,107,53,0.4); }
+        .input-wrap { position: relative; }
+        .tech-input {
+            width: 100%;
+            padding: 14px 50px 14px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        .tech-input:focus {
+            outline: none;
+            border-color: rgba(255,107,53,0.6);
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.12), 0 0 20px rgba(255,107,53,0.08);
+            background: rgba(255,255,255,0.06);
+        }
+        .tech-input::placeholder { color: rgba(255,255,255,0.28); }
+        .clean-icon-btn {
+            position: absolute;
+            right: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 34px; height: 34px;
+            border: none;
+            background: rgba(255,255,255,0.06);
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .clean-icon-btn:hover { background: rgba(255,255,255,0.12); }
+
+        /* ===== 按钮 ===== */
+        .calc-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(255,107,53,0.35);
+            letter-spacing: 2px;
+        }
+        .calc-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(255,107,53,0.45); }
+        .calc-btn:active { transform: translateY(0); }
+        .calc-btn:disabled { background: rgba(255,255,255,0.08); box-shadow: none; cursor: not-allowed; color: rgba(255,255,255,0.4); }
+        .clear-link {
+            background: none; border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 13px; cursor: pointer;
+            padding: 4px 8px;
+            text-decoration: underline;
+            width: auto; box-shadow: none;
+            letter-spacing: 0;
+        }
+        .clear-link:hover { color: #ff8c5a; }
+
+        /* ===== 状态 ===== */
+        .status-text {
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 12px;
+            min-height: 18px;
+        }
+        .loading-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: #ff6b35;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .error-box {
+            background: rgba(255,77,79,0.1);
+            border: 1px solid rgba(255,77,79,0.3);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            color: #ff8a80;
+            line-height: 1.6;
+        }
+
+        /* ===== 最优路径标签 ===== */
+        .optimal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,212,255,0.05));
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            color: #00d4ff;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* ===== 路线流程图 ===== */
+        .route-flow {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 8px 4px;
+        }
+        .route-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .route-node .node-dot {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.15);
+        }
+        .route-node .node-role {
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            margin-top: -4px;
+        }
+        .route-node .node-name {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            max-width: 64px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.3;
+        }
+        .route-line {
+            flex: 1;
+            height: 3px;
+            margin: 16px 2px 0;
+            border-radius: 2px;
+            flex-shrink: 1;
+            min-width: 12px;
+            position: relative;
+        }
+        .route-line.solo { background: rgba(0,212,255,0.25); }
+        .route-line.shared {
+            background: linear-gradient(90deg, #ff6b35, #ff8c5a);
+            box-shadow: 0 0 10px rgba(255,107,53,0.5);
+        }
+        .route-line.empty {
+            background: repeating-linear-gradient(90deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 4px, transparent 4px, transparent 8px);
+        }
+        .route-line .line-dist {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            white-space: nowrap;
+        }
+
+        /* ===== 一览统计 ===== */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 14px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { border-color: rgba(255,255,255,0.15); }
+        .stat-card.highlight {
+            border-color: rgba(255,107,53,0.35);
+            background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,107,53,0.02));
+        }
+        .stat-card.highlight::after {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 80px; height: 80px;
+            background: radial-gradient(circle, rgba(255,107,53,0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .stat-card.cyan {
+            border-color: rgba(0,212,255,0.3);
+            background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(0,212,255,0.02));
+        }
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .stat-card .stat-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+        }
+        .stat-card.highlight .stat-value { color: #ff8c5a; }
+        .stat-card.cyan .stat-value { color: #00d4ff; }
+        .stat-card .stat-unit {
+            font-size: 13px;
+            color: rgba(255,255,255,0.35);
+            margin-left: 3px;
+            font-weight: 500;
+        }
+
+        /* ===== 共路英雄卡片 ===== */
+        .shared-hero {
+            background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,107,53,0.02));
+            border: 1px solid rgba(255,107,53,0.25);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .shared-hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -40px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(255,107,53,0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .shared-hero .hero-label {
+            font-size: 13px;
+            color: #ff8c5a;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            z-index: 1;
+        }
+        .shared-hero .hero-num {
+            font-size: 40px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+        }
+        .shared-hero .hero-unit {
+            font-size: 16px;
+            color: rgba(255,255,255,0.45);
+            margin-left: 5px;
+            font-weight: 500;
+        }
+        .progress-track {
+            height: 6px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 3px;
+            margin-top: 16px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #ff8c5a);
+            border-radius: 3px;
+            transition: width 0.6s ease;
+            box-shadow: 0 0 12px rgba(255,107,53,0.5);
+        }
+        .progress-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 7px;
+            text-align: right;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== 拼单绕路卡片 ===== */
+        .detour-card {
+            background: linear-gradient(135deg, rgba(255,184,0,0.1), rgba(255,184,0,0.02));
+            border: 1px solid rgba(255,184,0,0.25);
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .detour-card::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -30px;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(255,184,0,0.1), transparent 70%);
+            pointer-events: none;
+        }
+        .detour-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            z-index: 1;
+        }
+        .detour-title {
+            font-size: 13px;
+            color: #ffb800;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .detour-desc {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            font-weight: normal;
+            margin-top: 4px;
+        }
+        .detour-big {
+            font-size: 34px;
+            font-weight: 800;
+            color: #ffb800;
+            line-height: 1;
+            text-align: right;
+        }
+        .detour-big .detour-unit {
+            font-size: 14px;
+            color: rgba(255,255,255,0.45);
+            margin-left: 3px;
+            font-weight: 500;
+        }
+        .detour-compare {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+        .detour-compare .num {
+            color: rgba(255,255,255,0.85);
+            font-weight: 600;
+        }
+        .detour-compare .arrow {
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ===== 地图面板 ===== */
+        .map-panel-wrap {
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+        }
+        .map-panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.025);
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .map-panel-head:active { background: rgba(255,255,255,0.05); }
+        .map-panel-head .head-title { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); }
+        .map-panel-head .head-arrow { font-size: 12px; color: rgba(255,255,255,0.4); transition: transform 0.3s; }
+        .map-panel-wrap.collapsed .head-arrow { transform: rotate(-90deg); }
+        .map-panel-body { max-height: 2000px; transition: max-height 0.35s ease; overflow: hidden; }
+        .map-panel-wrap.collapsed .map-panel-body { max-height: 0; }
+        #mapContainer { width: 100%; height: 300px; background: #141928; }
+        .map-placeholder {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            color: rgba(255,255,255,0.25); font-size: 13px;
+        }
+        .map-placeholder .big { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
+        .map-legend {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            padding: 12px 0;
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            flex-wrap: wrap;
+            background: rgba(255,255,255,0.015);
+        }
+        .legend-line {
+            display: inline-block;
+            width: 24px; height: 4px;
+            border-radius: 2px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        /* ===== 数据明细 ===== */
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .data-row:last-child { border-bottom: none; }
+        .data-row .row-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+        .data-row .row-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            text-align: right;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+        .data-row .row-value small {
+            display: block;
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            font-weight: normal;
+            margin-top: 3px;
+        }
+        .data-row.shared-row {
+            background: linear-gradient(90deg, rgba(255,107,53,0.08), transparent);
+            margin: 0 -18px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border-bottom: none;
+        }
+        .data-row.shared-row .row-value { color: #ff8c5a; }
+        .data-row.empty-row {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03), transparent);
+            margin: 0 -18px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border-bottom: none;
+        }
+        .data-row.empty-row .row-value { color: rgba(255,255,255,0.5); }
+        .data-row.total-row .row-value { color: #ff8c5a; font-size: 20px; }
+
+        /* ===== 徽章 ===== */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-weight: 500;
+        }
+        .badge-solo { background: rgba(0,212,255,0.12); color: #00d4ff; }
+        .badge-shared { background: rgba(255,107,53,0.12); color: #ff8c5a; }
+        .badge-empty { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+        .badge-main { background: rgba(255,107,53,0.12); color: #ff8c5a; }
+        .badge-sub { background: rgba(0,212,255,0.12); color: #00d4ff; }
+
+        /* ===== 导航胶囊按钮 ===== */
+        .navi-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            background: rgba(0,212,255,0.1);
+            border: 1px solid rgba(0,212,255,0.25);
+            border-radius: 20px;
+            color: #00d4ff;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .navi-pill:hover { background: rgba(0,212,255,0.18); }
+        .navi-pill.shared {
+            background: rgba(255,107,53,0.1);
+            border-color: rgba(255,107,53,0.25);
+            color: #ff8c5a;
+        }
+        .navi-pill.shared:hover { background: rgba(255,107,53,0.18); }
+
+        /* ===== 底部 ===== */
+        .footer-tip {
+            font-size: 12px;
+            color: rgba(255,255,255,0.25);
+            text-align: center;
+            line-height: 1.8;
+            margin-top: 12px;
+            padding-bottom: 20px;
+        }
+        /* ===== 拍照扫描 ===== */
+        .scan-card { margin-bottom: 14px; }
+        .scan-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 18px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s;
+        }
+        .scan-card-head:active { background: rgba(255,255,255,0.04); }
+        .scan-head-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scan-head-title::before {
+            content: '';
+            width: 3px; height: 16px;
+            background: linear-gradient(180deg, #ff6b35, #00d4ff);
+            border-radius: 2px;
+        }
+        .scan-head-arrow {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            transition: transform 0.3s;
+        }
+        .scan-card:not(.scan-collapsed) .scan-head-arrow { transform: rotate(90deg); }
+        .scan-card-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+        .scan-btn {
+            width: 100%;
+            padding: 14px;
+            border: 1px dashed rgba(0,212,255,0.4);
+            border-radius: 12px;
+            background: rgba(0,212,255,0.06);
+            color: #00d4ff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            letter-spacing: 1px;
+        }
+        .scan-btn:active { background: rgba(0,212,255,0.14); transform: scale(0.99); }
+        .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .scan-preview-wrap {
+            margin-top: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.25);
+            display: none;
+        }
+        .scan-preview-wrap img { display: block; width: 100%; height: auto; }
+        .scan-progress {
+            margin-top: 10px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            display: none;
+        }
+        .scan-progress .bar-track {
+            height: 5px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            margin-top: 7px;
+            overflow: hidden;
+        }
+        .scan-progress .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00d4ff, #00b8e6);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .scan-result-box { margin-top: 14px; display: none; }
+        .scan-textarea {
+            width: 100%;
+            min-height: 70px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        .scan-textarea:focus {
+            outline: none;
+            border-color: rgba(0,212,255,0.5);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+        }
+        .scan-textarea::placeholder { color: rgba(255,255,255,0.28); }
+        .fill-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .fill-btn {
+            padding: 10px 6px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 9px;
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fill-btn:active { transform: scale(0.97); }
+        .fill-btn.to-a { border-color: rgba(255,107,53,0.4); color: #ff8c5a; }
+        .fill-btn.to-d { border-color: rgba(255,107,53,0.4); color: #ff8c5a; }
+        .fill-btn.to-b { border-color: rgba(0,212,255,0.4); color: #00d4ff; }
+        .fill-btn.to-c { border-color: rgba(0,212,255,0.4); color: #00d4ff; }
+        .fill-btn:hover { background: rgba(255,255,255,0.08); }
+        .cand-list { margin-top: 12px; }
+        .cand-title {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .cand-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 10px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 9px;
+            margin-bottom: 7px;
+        }
+        .cand-addr {
+            flex: 1;
+            font-size: 13px;
+            color: rgba(255,255,255,0.82);
+            line-height: 1.4;
+            word-break: break-all;
+        }
+        .cand-btns { display: flex; gap: 4px; flex-shrink: 0; }
+        .cand-btns button {
+            width: 30px; height: 30px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 7px;
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+        }
+        .cand-btns button.ca { color: #ff8c5a; border-color: rgba(255,107,53,0.35); }
+        .cand-btns button.cd { color: #ff8c5a; border-color: rgba(255,107,53,0.35); }
+        .cand-btns button.cb { color: #00d4ff; border-color: rgba(0,212,255,0.35); }
+        .cand-btns button.cc { color: #00d4ff; border-color: rgba(0,212,255,0.35); }
+        .cand-btns button:active { transform: scale(0.92); }
+        .scan-tip {
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+        .scan-reselect {
+            background: none; border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 12px; cursor: pointer;
+            padding: 4px 8px;
+            text-decoration: underline;
+            margin-top: 8px;
+        }
+        .scan-reselect:hover { color: #00d4ff; }
+        /* ===== 费用参数 ===== */
+        .cost-params {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+        }
+        .cost-param { flex: 1; }
+        .cost-param label {
+            display: block;
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 5px;
+        }
+        .cost-param input {
+            width: 100%;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .cost-param input:focus {
+            outline: none;
+            border-color: rgba(255,107,53,0.5);
+        }
+        .cost-param .unit {
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            font-weight: normal;
+            margin-left: 2px;
+        }
+        /* ===== 拼单建议 ===== */
+        .suggest-card {
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .suggest-card::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -30px;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .suggest-card .sug-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        .suggest-card .sug-icon { font-size: 28px; }
+        .suggest-card .sug-text { font-size: 17px; font-weight: 800; }
+        .suggest-card .sug-desc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 6px;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+        .sug-green {
+            background: linear-gradient(135deg, rgba(0,200,120,0.12), rgba(0,200,120,0.02));
+            border: 1px solid rgba(0,200,120,0.3);
+        }
+        .sug-green::before { background: radial-gradient(circle, rgba(0,200,120,0.12), transparent 70%); }
+        .sug-green .sug-text { color: #00e676; }
+        .sug-blue {
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,212,255,0.02));
+            border: 1px solid rgba(0,212,255,0.25);
+        }
+        .sug-blue::before { background: radial-gradient(circle, rgba(0,212,255,0.1), transparent 70%); }
+        .sug-blue .sug-text { color: #00d4ff; }
+        .sug-yellow {
+            background: linear-gradient(135deg, rgba(255,184,0,0.1), rgba(255,184,0,0.02));
+            border: 1px solid rgba(255,184,0,0.25);
+        }
+        .sug-yellow::before { background: radial-gradient(circle, rgba(255,184,0,0.1), transparent 70%); }
+        .sug-yellow .sug-text { color: #ffb800; }
+        .sug-red {
+            background: linear-gradient(135deg, rgba(255,77,79,0.1), rgba(255,77,79,0.02));
+            border: 1px solid rgba(255,77,79,0.25);
+        }
+        .sug-red::before { background: radial-gradient(circle, rgba(255,77,79,0.1), transparent 70%); }
+        .sug-red .sug-text { color: #ff6b6b; }
+        /* ===== 费用明细 ===== */
+        .cost-hero {
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,212,255,0.02));
+            border: 1px solid rgba(0,212,255,0.25);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cost-hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -40px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(0,212,255,0.1), transparent 70%);
+            pointer-events: none;
+        }
+        .cost-hero .hero-label {
+            font-size: 13px;
+            color: #00d4ff;
+            font-weight: 600;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .cost-hero .hero-num {
+            font-size: 40px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+        }
+        .cost-hero .hero-unit {
+            font-size: 16px;
+            color: rgba(255,255,255,0.45);
+            margin-left: 5px;
+            font-weight: 500;
+        }
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .cost-breakdown .cb-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .cost-breakdown .cb-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 4px;
+        }
+        .cost-breakdown .cb-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .cost-breakdown .cb-value .cb-yuan {
+            font-size: 12px;
+            color: rgba(255,255,255,0.35);
+            font-weight: 500;
+        }
+        .split-card {
+            background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,107,53,0.01));
+            border: 1px solid rgba(255,107,53,0.2);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+        .split-title {
+            font-size: 13px;
+            color: #ff8c5a;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .split-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+        }
+        .split-row .split-val {
+            font-weight: 700;
+            color: #fff;
+            font-size: 15px;
+        }
+        .split-tip {
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        /* ===== 手机窄屏适配 ===== */
+        @media (max-width: 400px) {
+            body { padding: 10px; }
+            .header { padding: 20px 10px 16px; }
+            .header-title { font-size: 19px; }
+            .header-sub { font-size: 11px; }
+            .glass-card, .scan-card { border-radius: 12px; }
+            .glass-card { padding: 14px !important; }
+            .stat-card .stat-value { font-size: 22px; }
+            .stat-card .stat-label { font-size: 11px; }
+            .shared-hero .hero-num, .cost-hero .hero-num { font-size: 32px; }
+            .detour-big { font-size: 28px; }
+            /* 路线流程图缩小 */
+            .route-flow { padding: 6px 0; }
+            .route-node .node-dot { width: 28px; height: 28px; font-size: 12px; border-width: 2px; }
+            .route-node .node-name { max-width: 48px; font-size: 10px; }
+            .route-node .node-role { font-size: 9px; }
+            .route-line { margin: 12px 1px 0; min-width: 6px; }
+            .route-line .line-dist { font-size: 9px; }
+            /* 费用参数输入框缩小 */
+            .cost-params { padding: 10px; gap: 8px; }
+            .cost-param input { padding: 7px 8px; font-size: 13px; }
+            .cost-param label { font-size: 10px; }
+            /* 费用拆分卡片缩小 */
+            .cost-breakdown .cb-value { font-size: 16px; }
+            .data-row .row-value { font-size: 16px; }
+            .calc-btn { padding: 13px; font-size: 15px; }
+            .tech-input { padding: 12px 44px 12px 14px; font-size: 14px; }
+        }
+        @media (max-width: 340px) {
+            .route-node .node-name { max-width: 38px; }
+            .route-node .node-role { display: none; }
+        }
+        /* 防止任何元素横向溢出 */
+        .glass-card, .scan-card, .detour-card, .shared-hero, .cost-hero, .split-card, .suggest-card, .map-panel-wrap {
+            max-width: 100%;
+            overflow-wrap: break-word;
+        }
+
+        /* ===== 底部Tab导航 ===== */
+        .tab-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            display: flex;
+            background: rgba(15,20,35,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0 6px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 11px;
+            gap: 3px;
+            transition: color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-item .tab-icon { font-size: 22px; line-height: 1; }
+        .tab-item.active { color: #ff8c5a; }
+        body { padding-bottom: 70px; }
+
+        /* ===== 页面切换 ===== */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ===== 利润页样式 ===== */
+        .p-card {
+            background: rgba(255,255,255,0.035);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+        .p-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .p-section-title::before {
+            content: '';
+            width: 3px; height: 16px;
+            background: linear-gradient(180deg, #ff6b35, #00d4ff);
+            border-radius: 2px;
+        }
+        .p-grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .p-field { margin-bottom: 12px; }
+        .p-field:last-child { margin-bottom: 0; }
+        .p-field label {
+            display: block;
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 6px;
+        }
+        .p-field input, .p-field select {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .p-field input:focus, .p-field select:focus {
+            outline: none;
+            border-color: rgba(0,212,255,0.5);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.1);
+        }
+        .p-field select option { background: #1a2035; color: #fff; }
+        .p-field input::placeholder { color: rgba(255,255,255,0.25); font-weight: 400; }
+        .p-field input.auto-filled {
+            border-color: rgba(0,212,255,0.3);
+            background: rgba(0,212,255,0.04);
+        }
+        .auto-tag {
+            display: inline-block;
+            font-size: 10px;
+            color: #00d4ff;
+            background: rgba(0,212,255,0.1);
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+        .p-calc-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00b8e6 100%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0,212,255,0.3);
+            letter-spacing: 2px;
+        }
+        .p-calc-btn:active { transform: scale(0.98); }
+        /* 拼单路程明细 */
+        .pin-breakdown {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: rgba(0,212,255,0.05);
+            border: 1px solid rgba(0,212,255,0.15);
+            border-radius: 10px;
+        }
+        .pb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+        }
+        .pb-row + .pb-row { border-top: 1px dashed rgba(255,255,255,0.08); }
+        .pb-row .pb-label { display: flex; align-items: center; gap: 4px; }
+        .pb-row .pb-val { font-weight: 600; color: rgba(255,255,255,0.8); }
+        .pb-row.pb-solo {
+            background: rgba(255,140,90,0.08);
+            margin: 4px -12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .pb-row.pb-solo .pb-label { color: #ff8c5a; font-weight: 600; }
+        .pb-row.pb-solo .pb-val { color: #ff8c5a; font-size: 14px; }
+        .pb-row.pb-ref { opacity: 0.7; font-size: 11px; }
+        .pb-row.pb-ref .pb-label { color: rgba(255,255,255,0.4); }
+        .pb-row.pb-ref .pb-val { color: rgba(255,255,255,0.5); }
+        .pb-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 6px 0;
+        }
+
+        .p-clear-btn {
+            display: block;
+            margin: 10px auto 0;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+            text-decoration: underline;
+            letter-spacing: 0;
+            box-shadow: none;
+            width: auto;
+        }
+        .p-clear-btn:hover { color: rgba(255,255,255,0.55); }
+
+        /* 利润结果 */
+        .p-result { display: none; }
+        .p-result.show { display: block; }
+        .profit-hero {
+            text-align: center;
+            padding: 24px 20px;
+            border-radius: 16px;
+            margin-bottom: 14px;
+        }
+        .profit-hero.good { background: linear-gradient(135deg, rgba(0,200,120,0.15), rgba(0,200,120,0.02)); border: 1px solid rgba(0,200,120,0.3); }
+        .profit-hero.bad { background: linear-gradient(135deg, rgba(255,77,79,0.15), rgba(255,77,79,0.02)); border: 1px solid rgba(255,77,79,0.3); }
+        .profit-hero .ph-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+        .profit-hero .ph-num { font-size: 42px; font-weight: 800; line-height: 1; }
+        .profit-hero.good .ph-num { color: #00e676; }
+        .profit-hero.bad .ph-num { color: #ff6b6b; }
+        .profit-hero .ph-unit { font-size: 18px; color: rgba(255,255,255,0.4); margin-left: 4px; }
+        .profit-hero .ph-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 10px; }
+        .p-stat-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .p-stat {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 12px 6px;
+            text-align: center;
+        }
+        .p-stat .ps-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+        .p-stat .ps-value { font-size: 17px; font-weight: 700; color: #fff; }
+        .p-stat .ps-value.in { color: #00e676; }
+        .p-stat .ps-value.out { color: #ff8c5a; }
+        .p-tip {
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+        .p-tip.tip-good { background: rgba(0,200,120,0.1); border: 1px solid rgba(0,200,120,0.25); color: #00e676; }
+        .p-tip.tip-warn { background: rgba(255,184,0,0.1); border: 1px solid rgba(255,184,0,0.25); color: #ffb800; }
+        .p-tip.tip-bad { background: rgba(255,77,79,0.1); border: 1px solid rgba(255,77,79,0.25); color: #ff6b6b; }
+        .p-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+        }
+        .p-detail-row:last-child { border-bottom: none; }
+        .p-detail-row .pdr-val { font-weight: 600; color: #fff; }
+        .p-detail-row .pdr-val.out { color: #ff8c5a; }
+        .p-detail-row .pdr-val.in { color: #00e676; }
+        .p-detail-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            margin: 12px 0 4px;
+        }
+        .p-detail-title:first-child { margin-top: 0; }
+        .p-compare {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 8px;
+            align-items: center;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+        .p-compare .pc-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+        .p-compare .pc-val { font-size: 18px; font-weight: 700; }
+        .p-compare .pc-arrow { font-size: 18px; color: rgba(255,255,255,0.3); }
+        .route-data-banner {
+            background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(0,212,255,0.02));
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .route-data-banner .rdb-link {
+            margin-left: auto;
+            color: #00d4ff;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 12px;
+            background: none; border: none;
+            white-space: nowrap;
+        }
+        @media (max-width: 400px) {
+            .p-card { padding: 14px; }
+            .p-field input, .p-field select { padding: 9px 12px; font-size: 14px; }
+            .profit-hero .ph-num { font-size: 34px; }
+            .p-stat .ps-value { font-size: 15px; }
+        }
+    </style>
 </head>
 <body>
-<div class="page active" id="pageCalc">
-    <div class="header">
-        <div class="left-btns">
-            <button class="icon-btn" id="btnGoHis">←</button>
+<!-- 路线页 -->
+<div class="page active" id="pageRoute">
+    <div class="container">
+        <div class="header">
+            <div class="header-title">🚚 货运共路距离计算器</div>
+            <div class="header-sub">智能规划最优装卸顺序 ｜ 不绕路 不重复 不空档</div>
         </div>
-        <div class="right-btns">
-            <button class="icon-btn" id="btnTheme">☀</button>
-            <button class="reset-btn" id="btnResetAll">清除</button>
+
+        <!-- 拍照扫描卡片（默认收起） -->
+        <div class="glass-card scan-card scan-collapsed" id="scanCard" style="padding:0; margin-bottom:14px; overflow:hidden;">
+            <div class="scan-card-head" onclick="toggleScanCard()">
+                <span class="scan-head-title">📷 拍照扫描运单</span>
+                <span class="scan-head-arrow" id="scanHeadArrow">▶</span>
+            </div>
+            <div class="scan-card-body" id="scanCardBody">
+                <div style="padding:16px 18px 18px;">
+                    <input type="file" id="scanFile" accept="image/*" capture="environment" style="display:none">
+                    <button type="button" class="scan-btn" id="scanBtn" onclick="document.getElementById('scanFile').click()">📸 拍照 / 从相册选择运单图片</button>
+                    <div class="scan-preview-wrap" id="scanPreviewWrap">
+                        <img id="scanPreviewImg" alt="运单预览">
+                    </div>
+                    <div class="scan-progress" id="scanProgress">
+                        <span id="scanProgressText">正在初始化识别引擎...</span>
+                        <div class="bar-track"><div class="bar-fill" id="scanProgressBar"></div></div>
+                    </div>
+                    <div class="scan-result-box" id="scanResultBox">
+                        <div class="cand-title">识别全文（可手动修改）</div>
+                        <textarea class="scan-textarea" id="scanFullText" placeholder="识别结果将显示在这里"></textarea>
+                        <div class="fill-row">
+                            <button type="button" class="fill-btn to-a" onclick="fillScannedTo('addrA')">→ 填入 A 主单装货</button>
+                            <button type="button" class="fill-btn to-d" onclick="fillScannedTo('addrD')">→ 填入 D 主单卸货</button>
+                            <button type="button" class="fill-btn to-b" onclick="fillScannedTo('addrB')">→ 填入 B 拼单装货</button>
+                            <button type="button" class="fill-btn to-c" onclick="fillScannedTo('addrC')">→ 填入 C 拼单卸货</button>
+                        </div>
+                        <div class="cand-list" id="candList"></div>
+                        <button type="button" class="scan-reselect" onclick="resetScan()">重新拍照 / 选图</button>
+                    </div>
+                    <div class="scan-tip" id="scanTip">💡 拍运单/货单上的地址，自动识别后点按钮一键填入；首次识别需加载中文语言包，请稍候</div>
+                </div>
+            </div>
         </div>
-        <h1>货运成本计算器</h1>
-        <p>油费+高速费+信息费 成本测算</p>
+
+        <div class="glass-card" style="padding:18px; margin-bottom:14px;">
+            <div class="group-title"><span>📦 主单</span><span class="line"></span></div>
+            <div class="form-group">
+                <div class="form-label"><span class="point-tag point-a">A</span>装货点<span class="label-desc">主单起点</span></div>
+                <div class="input-wrap">
+                    <input type="text" id="addrA" class="tech-input" placeholder="粘贴客户微信地址，自动清理" onpaste="handlePaste('addrA')">
+                    <button type="button" class="clean-icon-btn" onclick="cleanInput('addrA')" title="清理提取地址">🧹</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-label"><span class="point-tag point-d">D</span>卸货点<span class="label-desc">主单终点</span></div>
+                <div class="input-wrap">
+                    <input type="text" id="addrD" class="tech-input" placeholder="粘贴客户微信地址，自动清理" onpaste="handlePaste('addrD')">
+                    <button type="button" class="clean-icon-btn" onclick="cleanInput('addrD')" title="清理提取地址">🧹</button>
+                </div>
+            </div>
+
+            <div class="group-title"><span>📦 拼单</span><span class="line"></span></div>
+            <div class="form-group">
+                <div class="form-label"><span class="point-tag point-b">B</span>装货点<span class="label-desc">拼单起点</span></div>
+                <div class="input-wrap">
+                    <input type="text" id="addrB" class="tech-input" placeholder="粘贴客户微信地址，自动清理" onpaste="handlePaste('addrB')">
+                    <button type="button" class="clean-icon-btn" onclick="cleanInput('addrB')" title="清理提取地址">🧹</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-label"><span class="point-tag point-c">C</span>卸货点<span class="label-desc">拼单终点</span></div>
+                <div class="input-wrap">
+                    <input type="text" id="addrC" class="tech-input" placeholder="粘贴客户微信地址，自动清理" onpaste="handlePaste('addrC')">
+                    <button type="button" class="clean-icon-btn" onclick="cleanInput('addrC')" title="清理提取地址">🧹</button>
+                </div>
+            </div>
+            <div class="cost-params">
+                <div class="cost-param">
+                    <label>油耗<span class="unit">L/100km</span></label>
+                    <input type="number" id="fuelConsume" value="30" min="5" max="60" step="0.5">
+                </div>
+                <div class="cost-param">
+                    <label>油价<span class="unit">元/L</span></label>
+                    <input type="number" id="fuelPrice" value="7.5" min="4" max="15" step="0.1">
+                </div>
+            </div>
+            <button id="calcBtn" class="calc-btn" onclick="calcRoute()">智能规划路线</button>
+            <div style="text-align:center;margin-top:12px;">
+                <button type="button" class="clear-link" onclick="clearAddr()">清空全部地址</button>
+            </div>
+            <div class="status-text" id="status"></div>
+        </div>
+
+        <div id="errorBox" style="display:none;"></div>
+
+        <div id="resultBox" style="display:none;">
+            <!-- 路线流程图 -->
+            <div class="glass-card" style="padding:16px; margin-bottom:14px;">
+                <div class="optimal-badge">✨ 已规划最优路线</div>
+                <div class="route-flow" id="routeFlow"></div>
+            </div>
+
+            <!-- 一览 -->
+            <div class="glass-card" style="padding:18px; margin-bottom:14px;">
+                <div class="section-title">📊 数据一览</div>
+                <div class="stat-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-label">最优路线总里程</div>
+                        <div class="stat-value" id="ovTotal">-<span class="stat-unit">km</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">共路里程</div>
+                        <div class="stat-value" id="ovShared">-<span class="stat-unit">km</span></div>
+                    </div>
+                    <div class="stat-card cyan">
+                        <div class="stat-label">主单行驶（A装→D卸）</div>
+                        <div class="stat-value" id="ovMain">-<span class="stat-unit">km</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">拼单行驶（B装→C卸）</div>
+                        <div class="stat-value" id="ovSub">-<span class="stat-unit">km</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 拼单绕路 -->
+            <div class="detour-card">
+                <div class="detour-head">
+                    <div>
+                        <div class="detour-title">🔀 拼单绕路</div>
+                        <div class="detour-desc">相比主单直达 A→D 多跑的里程</div>
+                    </div>
+                    <div class="detour-big"><span id="detourKm">-</span><span class="detour-unit">公里</span></div>
+                </div>
+                <div class="detour-compare">
+                    <span>主单直达 <span class="num" id="detDirect">-</span> km</span>
+                    <span class="arrow">→</span>
+                    <span>实际总里程 <span class="num" id="detTotal">-</span> km</span>
+                </div>
+            </div>
+
+            <!-- 拼单建议 -->
+            <div class="suggest-card" id="suggestCard" style="display:none;">
+                <div class="sug-head">
+                    <span class="sug-icon" id="sugIcon">-</span>
+                    <span class="sug-text" id="sugText">-</span>
+                </div>
+                <div class="sug-desc" id="sugDesc">-</div>
+            </div>
+
+            <!-- 共路英雄卡片 -->
+            <div class="shared-hero">
+                <div class="hero-label">⭐ 共路路段（主单+拼单同程）</div>
+                <div><span class="hero-num" id="sharedDist">-</span><span class="hero-unit">公里</span></div>
+                <div class="progress-track"><div class="progress-fill" id="ratioFill" style="width:0%"></div></div>
+                <div class="progress-label" id="ratioText">共路占总里程 -</div>
+            </div>
+
+            <!-- 费用估算 -->
+            <div class="cost-hero">
+                <div class="hero-label">💰 全程费用估算</div>
+                <div><span class="hero-num" id="costTotal">-</span><span class="hero-unit">元</span></div>
+                <div class="cost-breakdown">
+                    <div class="cb-item">
+                        <div class="cb-label">⛽ 油费</div>
+                        <div class="cb-value" id="costFuel">-<span class="cb-yuan"> 元</span></div>
+                    </div>
+                    <div class="cb-item">
+                        <div class="cb-label">🛣️ 过路费</div>
+                        <div class="cb-value" id="costToll">-<span class="cb-yuan"> 元</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 共路费用分摊 -->
+            <div class="split-card" id="splitCard" style="display:none;">
+                <div class="split-title">🤝 共路费用分摊建议</div>
+                <div class="split-row">
+                    <span>共路路段费用（油费+过路费）</span>
+                    <span class="split-val" id="splitShared">-</span>
+                </div>
+                <div class="split-row">
+                    <span>主单承担（含共路一半）</span>
+                    <span class="split-val" id="splitMain">-</span>
+                </div>
+                <div class="split-row">
+                    <span>拼单承担（含共路一半）</span>
+                    <span class="split-val" id="splitSub">-</span>
+                </div>
+                <div class="split-tip">💡 共路部分双方各担一半；各单独路段费用归各自。拼单运费不低于其承担费用才不亏。</div>
+            </div>
+
+            <!-- 地图 -->
+            <div class="map-panel-wrap" id="mapPanel">
+                <div class="map-panel-head" onclick="toggleMap()">
+                    <span class="head-title">🗺️ 路线地图</span>
+                    <span class="head-arrow">▼</span>
+                </div>
+                <div class="map-panel-body">
+                    <div id="mapContainer">
+                        <div class="map-placeholder" id="mapPlaceholder">
+                            <div class="big">🗺️</div>
+                            <div>计算后将在这里显示路线地图</div>
+                        </div>
+                    </div>
+                    <div class="map-legend">
+                        <span><span class="legend-line" style="background:#00d4ff"></span>单独行驶</span>
+                        <span><span class="legend-line" style="background:#ff6b35"></span>共路（加粗）</span>
+                        <span><span class="legend-line" style="background:repeating-linear-gradient(90deg,rgba(255,255,255,0.4) 0,rgba(255,255,255,0.4) 4px,transparent 4px,transparent 8px)"></span>空驶（无货）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 明细 -->
+            <div class="glass-card" style="padding:18px;">
+                <div class="section-title">📋 分段明细</div>
+                <div id="segmentList"></div>
+                <div class="data-row total-row">
+                    <span class="row-label" style="font-weight:600;">最优路线总里程</span>
+                    <span class="row-value" id="resTotal">-<small id="timeTotal"></small></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-tip">
+            数据来源：高德地图 · 按实际驾车导航里程计算<br>
+            系统自动枚举6种合法装卸顺序，选总里程最短的最优路线<br>
+            费用估算基于输入的油耗和油价，过路费按黄牌二轴货车地区系数估算（云贵川≈1.9倍、中部≈1.6倍、沿海≈1.5倍），实际以收费站为准<br>
+            地址请尽量详细（省+市+区+街道），解析更准确
+        </div>
     </div>
-    <div class="card">
-        <div class="card-head">
-            <div class="card-title">主单信息</div>
-            <div style="display:flex;gap:8px;">
-                <button class="btn-small btn-voice" id="btnVoiceInput">🎤语音</button>
-                <button class="btn-small" id="btnClearMain">清空</button>
+</div><!-- /pageRoute -->
+
+<!-- 利润页 -->
+<div class="page" id="pageProfit">
+    <div class="container">
+        <div class="header">
+            <div class="header-title">💰 货运利润计算器</div>
+            <div class="header-sub">放空+主单直达+拼单绕路 ｜ 油费+过路费+信息费 ｜ 净利润一算便知</div>
+        </div>
+
+        <div class="route-data-banner" id="routeDataBanner" style="display:none;">
+            <span class="rdb-icon">🔗</span>
+            <span id="routeDataText">已从路线页带入数据</span>
+            <button class="rdb-link" onclick="switchTab('route')">查看路线</button>
+        </div>
+
+        <div class="suggest-card" id="pSuggestCard" style="display:none;">
+            <div class="sug-head">
+                <span class="sug-icon" id="pSugIcon"></span>
+                <span class="sug-text" id="pSugText"></span>
+            </div>
+            <div class="sug-desc" id="pSugDesc"></div>
+        </div>
+
+        <div class="p-card">
+            <div class="p-section-title">车辆参数</div>
+            <div class="p-grid2">
+                <div class="p-field">
+                    <label>油耗 L/100km</label>
+                    <input type="number" id="pOilUse" value="30" min="5" max="60" step="0.5">
+                </div>
+                <div class="p-field">
+                    <label>柴油单价 元/L</label>
+                    <input type="number" id="pOilPrice" value="7.5" step="0.1" min="0">
+                </div>
             </div>
         </div>
-        <div class="form-grid">
-            <div class="form-item">
-                <label>载货油耗 L/100km</label>
-                <select id="oilUse">
-                    <option value="17">空/轻载 17</option>
-                    <option value="21" selected>标载 21</option>
-                    <option value="23">重载 23</option>
-                </select>
-            </div>
-            <div class="form-item">
-                <label>柴油单价 元/升</label>
-                <div class="input-group">
-                    <button class="adj-btn" data-adj="oilPrice" data-step="-0.1">−</button>
-                    <input type="number" step="0.1" min="0" id="oilPrice" value="7.8">
-                    <button class="adj-btn" data-adj="oilPrice" data-step="0.1">+</button>
+
+        <div class="p-card">
+            <div class="p-section-title">主单信息</div>
+            <div class="p-grid2">
+                <div class="p-field">
+                    <label>主单里程km <span class="auto-tag" id="tagMainKm" style="display:none;">路线带入</span></label>
+                    <input type="number" id="pMainKm" placeholder="0" min="0" step="0.1">
+                </div>
+                <div class="p-field">
+                    <label>过路费（全程）元 <span class="auto-tag" id="tagTolls" style="display:none;">黄牌估算</span></label>
+                    <input type="number" id="pTolls" placeholder="0" min="0" step="1">
                 </div>
             </div>
-            <div class="form-item">
-                <label>主单里程 km</label>
-                <input type="number" min="0" id="mainKm">
-            </div>
-            <div class="form-item">
-                <label>高速单价 元/km</label>
-                <div class="input-group">
-                    <button class="adj-btn" data-adj="roadPrice" data-step="-0.1">−</button>
-                    <input type="number" step="0.1" min="0" id="roadPrice" value="1.1">
-                    <button class="adj-btn" data-adj="roadPrice" data-step="0.1">+</button>
+            <div class="p-grid2">
+                <div class="p-field">
+                    <label>主单运费 元</label>
+                    <input type="number" id="pMainMoney" placeholder="0" min="0" step="10">
+                </div>
+                <div class="p-field">
+                    <label>信息费 元</label>
+                    <input type="number" id="pInfoFee" placeholder="0" min="0" step="10">
                 </div>
             </div>
-            <div class="form-item">
-                <label>主单运费 元</label>
-                <input type="number" min="0" id="mainMoney">
+        </div>
+
+        <div class="p-card">
+            <div class="p-section-title">放空信息（驻点→装货地）</div>
+            <div class="p-grid2">
+                <div class="p-field">
+                    <label>放空里程 km</label>
+                    <input type="number" id="pEmptyKm" placeholder="0" min="0" step="0.1">
+                </div>
+                <div class="p-field">
+                    <label>放空过路费 元</label>
+                    <input type="number" id="pEmptyTolls" placeholder="0" min="0" step="1">
+                </div>
             </div>
-            <div class="form-item">
-                <label>信息费 元</label>
-                <input type="number" min="0" id="infoFee">
+            <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px;line-height:1.4;">从停车场/驻点空驶到A装货地的距离和过路费，手动填写</div>
+        </div>
+
+        <div class="p-card">
+            <div class="p-section-title">拼单信息</div>
+            <div class="p-grid2">
+                <div class="p-field">
+                    <label>拼单绕路里程 km <span class="auto-tag" id="tagPinKm" style="display:none;">路线带入</span></label>
+                    <input type="number" id="pPinKm" placeholder="0" min="0" step="0.1">
+                </div>
+                <div class="p-field">
+                    <label>拼单运费 元</label>
+                    <input type="number" id="pPinMoney" placeholder="0" min="0" step="10">
+                </div>
             </div>
+            <!-- 路程明细：主单直达 / 拼单后总里程 / 因拼单多走 / 空驶参考 / B→C全程 / 共路 -->
+            <div class="pin-breakdown" id="pinBreakdown" style="display:none;">
+                <div class="pb-row">
+                    <span class="pb-label">主单 A→D 直达</span>
+                    <span class="pb-val" id="pbDirect">0 km</span>
+                </div>
+                <div class="pb-row">
+                    <span class="pb-label">拼单后实际总里程</span>
+                    <span class="pb-val" id="pbRouteTotal">0 km</span>
+                </div>
+                <div class="pb-row pb-solo">
+                    <span class="pb-label">因拼单多走（绕路）</span>
+                    <span class="pb-val" id="pbDetour">0 km</span>
+                </div>
+                <div class="pb-row pb-ref">
+                    <span class="pb-label">其中空驶（参考）</span>
+                    <span class="pb-val" id="pbEmpty">0 km</span>
+                </div>
+                <div class="pb-divider"></div>
+                <div class="pb-row">
+                    <span class="pb-label">拼单 B→C 全程</span>
+                    <span class="pb-val" id="pbPinTotal">0 km</span>
+                </div>
+                <div class="pb-row">
+                    <span class="pb-label">与主单共路（顺路）</span>
+                    <span class="pb-val" id="pbShared">0 km</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="p-calc-btn" onclick="calculateProfit()">一键计算利润</button>
+        <button class="p-clear-btn" onclick="clearProfit()">清空全部</button>
+
+        <div class="p-result" id="pResult">
+            <div class="profit-hero" id="profitHero">
+                <div class="ph-label">全程净利润</div>
+                <div><span class="ph-num" id="pTotalProfit">0</span><span class="ph-unit">元</span></div>
+                <div class="ph-sub" id="pProfitSub"></div>
+            </div>
+
+            <div class="p-stat-row">
+                <div class="p-stat">
+                    <div class="ps-label">每公里利润</div>
+                    <div class="ps-value" id="pPerKm">0 元</div>
+                </div>
+                <div class="p-stat">
+                    <div class="ps-label">总收入</div>
+                    <div class="ps-value in" id="pIncome">0</div>
+                </div>
+                <div class="p-stat">
+                    <div class="ps-label">总成本</div>
+                    <div class="ps-value out" id="pCost">0</div>
+                </div>
+            </div>
+
+            <div class="p-tip" id="pTip"></div>
+
+            <div class="p-compare" id="pCompare" style="display:none;">
+                <div>
+                    <div class="pc-label">不拼单利润</div>
+                    <div class="pc-val" id="pNoPin" style="color:#ff8c5a;">0</div>
+                </div>
+                <div class="pc-arrow">→</div>
+                <div>
+                    <div class="pc-label">拼单后利润</div>
+                    <div class="pc-val" id="pWithPin" style="color:#00e676;">0</div>
+                    <div class="pc-add" id="pAddProfit"></div>
+                </div>
+            </div>
+
+            <div class="p-card" style="padding:14px 16px;">
+                <div class="p-detail-title">收入明细</div>
+                <div class="p-detail-row"><span>主单运费</span><span class="pdr-val in" id="dMainMoney">0 元</span></div>
+                <div class="p-detail-row" id="dPinRow" style="display:none;"><span>拼单运费</span><span class="pdr-val in" id="dPinMoney">0 元</span></div>
+                <div class="p-detail-title">成本明细</div>
+                <div class="p-detail-row"><span>油费（全程）</span><span class="pdr-val out" id="dOil">0 元</span></div>
+                <div class="p-detail-row" id="dEmptyOilRow" style="display:none;color:rgba(255,184,0,0.8);"><span>其中：放空油费</span><span class="pdr-val out" id="dEmptyOil">0 元</span></div>
+                <div class="p-detail-row" id="dDetourOilRow" style="display:none;color:rgba(255,140,90,0.8);"><span>其中：拼单绕路油费</span><span class="pdr-val out" id="dDetourOil">0 元</span></div>
+                <div class="p-detail-row"><span>过路费（全程黄牌估算）</span><span class="pdr-val out" id="dRoad">0 元</span></div>
+                <div class="p-detail-row" id="dEmptyTollsRow" style="display:none;"><span>放空过路费</span><span class="pdr-val out" id="dEmptyTolls">0 元</span></div>
+                <div class="p-detail-row"><span>信息费</span><span class="pdr-val out" id="dInfo">0 元</span></div>
+                <div class="p-detail-row" id="dEmptySubRow" style="display:none;background:rgba(255,184,0,0.06);margin:0 -10px;padding:9px 10px;border-radius:8px;border-bottom:none;">
+                    <span style="color:#ffb800;font-weight:600;">📌 放空成本合计</span>
+                    <span class="pdr-val" id="dEmptyTotal" style="color:#ffb800;">0 元</span>
+                </div>
+                <div class="p-detail-row" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;margin-top:4px;">
+                    <span style="font-weight:600;color:#fff;">净利润</span>
+                    <span class="pdr-val" id="dNet" style="font-size:16px;">0 元</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-tip">
+            油耗油价与路线页统一，修改任一页自动同步<br>
+            放空=驻点到装货地（手动填），主单=A→D直达，拼单绕路=实际总里程-直达（含绕行/上下高速）<br>
+            过路费按黄牌二轴货车地区系数估算，可手动修改，实际以收费站为准<br>
+            利润评估仅供参考，不构成运营建议
         </div>
     </div>
-    <div class="card empty-card" id="emptyCard">
-        <div class="card-head" id="emptyToggle">
-            <div class="card-title">放空里程成本</div>
-            <div class="empty-mile" id="emptyMileText">0 km</div>
-        </div>
-        <div class="card-body">
-            <div class="form-grid">
-                <div class="form-item">
-                    <label>放空总 km</label>
-                    <input type="number" min="0" id="emptyKm">
-                </div>
-                <div class="form-item">
-                    <label>放空高速 km</label>
-                    <input type="number" min="0" id="emptyHigh">
-                </div>
-            </div>
-        </div>
-    </div>
-    <button class="btn-toggle-pin" id="btnTogglePin">展开多拼单录入</button>
-    <div class="pin-box" id="pinBox">
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title">拼单货源</div>
-                <button class="btn-small" id="btnClearPin">清空全部</button>
-            </div>
-            
-            <div class="pin-item">
-                <div class="pin-head" data-pin="1">
-                    <span class="name">拼单一</span>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <button class="pin-clear" data-clear="1">清空</button>
-                        <span class="icon">+</span>
-                    </div>
-                </div>
-                <div class="pin-body" data-body="1">
-                    <div class="form-grid">
-                        <div class="form-item"><label>里程</label><input type="number" min="0" id="p1km"></div>
-                        <div class="form-item"><label>高速里程</label><input type="number" min="0" id="p1high"></div>
-                        <div class="form-item full"><label>运费</label><input type="number" min="0" id="p1money"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="pin-item">
-                <div class="pin-head" data-pin="2">
-                    <span class="name">拼单二</span>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <button class="pin-clear" data-clear="2">清空</button>
-                        <span class="icon">+</span>
-                    </div>
-                </div>
-                <div class="pin-body" data-body="2">
-                    <div class="form-grid">
-                        <div class="form-item"><label>里程</label><input type="number" min="0" id="p2km"></div>
-                        <div class="form-item"><label>高速里程</label><input type="number" min="0" id="p2high"></div>
-                        <div class="form-item full"><label>运费</label><input type="number" min="0" id="p2money"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="pin-item">
-                <div class="pin-head" data-pin="3">
-                    <span class="name">拼单三</span>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <button class="pin-clear" data-clear="3">清空</button>
-                        <span class="icon">+</span>
-                    </div>
-                </div>
-                <div class="pin-body" data-body="3">
-                    <div class="form-grid">
-                        <div class="form-item"><label>里程</label><input type="number" min="0" id="p3km"></div>
-                        <div class="form-item"><label>高速里程</label><input type="number" min="0" id="p3high"></div>
-                        <div class="form-item full"><label>运费</label><input type="number" min="0" id="p3money"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- 结果汇总面板 -->
-    <div class="result" id="resultBox">
-        <div class="profit-top-card">
-            <div class="label">单趟净赚（已扣信息费）</div>
-            <div class="profit-big-num num-font" id="totalProfit">0.00 元</div>
-        </div>
-        <div class="result-row-wrap">
-            <div class="gauge-wrap">
-                <div class="gauge-circle">
-                    <svg viewBox="0 0 110 110">
-                        <circle cx="55" cy="55" r="48" fill="none" stroke="#273854" stroke-width="8" />
-                        <circle id="gaugeBar" cx="55" cy="55" r="48" fill="none" stroke="#7dd3fc" stroke-width="8" stroke-linecap="round" stroke-dasharray="301.59" stroke-dashoffset="301.59" />
-                    </svg>
-                    <div class="gauge-text">
-                        <div class="v num-font" id="rateNum">0%</div>
-                        <div class="t">收益率</div>
-                    </div>
-                </div>
-                <div class="gauge-name">盈利水平</div>
-            </div>
-            <div class="info-grid">
-                <div class="info-grid-item">
-                    <div class="lab">每公里净赚</div>
-                    <div class="val c-green num-font" id="perKm">0.00 元</div>
-                </div>
-                <div class="info-grid-item">
-                    <div class="lab">主单单位成本</div>
-                    <div class="val c-red num-font" id="mainCost">0.00 元</div>
-                </div>
-                <div class="info-grid-item">
-                    <div class="lab">放空总费用</div>
-                    <div class="val c-red num-font" id="emptyCost">0.00 元</div>
-                </div>
-                <div class="info-grid-item">
-                    <div class="lab">全程总里程</div>
-                    <div class="val c-blue num-font" id="allKm">0 km</div>
-                </div>
-            </div>
-        </div>
-        <div class="compare" id="compareBox">
-            <div class="compare-head">
-                <div style="display:flex;align-items:center;gap:8px;"><span>↗</span><span>拼单增收对比</span></div>
-                <div class="compare-tag" id="compareTag">值得拼</div>
-            </div>
-            <div class="compare-body">
-                <div class="compare-item"><div class="n num-font" id="noPinMoney">0.00</div><div class="d">不拼单净赚</div></div>
-                <div class="compare-item"><div class="n add num-font" id="addMoney">+0.00</div><div class="d">拼单多赚</div></div>
-                <div class="compare-item"><div class="n num-font" id="withPinMoney">0.00</div><div class="d">合计净赚</div></div>
-            </div>
-        </div>
-        <div class="list-block">
-            <div class="list-row"><span class="list-lab">全部运费收入</span><span class="val-in" id="sumIn">0.00 元</span></div>
-            <div class="list-row"><span class="list-lab">燃油总支出</span><span class="val-out" id="sumOil">0.00 元</span></div>
-            <div class="list-row"><span class="list-lab">高速总支出</span><span class="val-out" id="sumRoad">0.00 元</span></div>
-            <div class="list-row"><span class="list-lab">信息费支出</span><span class="val-out" id="sumInfo">0.00 元</span></div>
-            <div class="list-row"><span class="list-lab">可变总成本</span><span class="val-out" id="sumAll">0.00 元</span></div>
-        </div>
-        <div class="tip-box" id="tipText">自动评估货源好坏</div>
-        <div class="btn-row">
-            <button class="btn-detail" id="btnDetail">展开明细</button>
-            <button class="btn-image" id="btnImage">生成图片</button>
-        </div>
-        <div class="detail-box" id="detailBox"><div class="detail-inner" id="detailHtml"></div></div>
-    </div>
+</div><!-- /pageProfit -->
+
+<!-- 底部Tab -->
+<div class="tab-bar">
+    <button class="tab-item active" id="tabRoute" onclick="switchTab('route')">
+        <span class="tab-icon">🛣️</span>
+        <span>路线规划</span>
+    </button>
+    <button class="tab-item cyan" id="tabProfit" onclick="switchTab('profit')">
+        <span class="tab-icon">💰</span>
+        <span>利润计算</span>
+    </button>
 </div>
-<div class="page" id="pageHis">
-    <div class="header">
-        <div class="left-btns">
-            <button class="icon-btn" id="btnGoCalc">←</button>
-        </div>
-        <h1>货运成本计算器</h1>
-        <p>货源对比复盘</p>
-    </div>
-    <div id="hisList"></div>
-</div>
-<div class="image-modal" id="imageModal">
-    <div class="box">
-        <h3>长按图片保存到相册</h3>
-        <img id="resultImg" alt="测算结果图片">
-        <button class="close-btn" id="closeImage">关闭</button>
-    </div>
-</div>
-<button class="fixed-calc-btn" id="btnCalc">一键计算利润</button>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script>
-const EMPTY_OIL_RATE = 16;
-let recognition = null;
-// 格式化金额
-function formatMoney(n){
-    if(isNaN(n)) return "0.00";
-    return Number(n).toFixed(2);
-}
-// 获取输入值
-function getNum(id){
-    const v = parseFloat(document.getElementById(id).value);
-    return isNaN(v) || v < 0 ? 0 : v;
-}
-const cacheKeys = ['oilUse','oilPrice','roadPrice','mainKm','mainMoney','infoFee','emptyKm','emptyHigh',
-    'p1km','p1high','p1money','p2km','p2high','p2money','p3km','p3high','p3money','theme'];
-// 本地存储工具
-function safeSet(key, value){try{localStorage.setItem(key, value);}catch(e){}}
-function safeGet(key){try{return localStorage.getItem(key);}catch(e){return null;}}
-function safeRemove(key){try{localStorage.removeItem(key);}catch(e){}}
-// 加载缓存
-function loadCache(){
-    try{
-        const data = JSON.parse(safeGet("truck_calc_cache") || "{}");
-        cacheKeys.forEach(key=>{
-            if(key === 'theme'){
-                if(data[key] === 'light') document.body.classList.add('light');
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
+    <script>
+        // 高德 JS API 安全密钥（2021年12月后申请的Key必填；老Key可留空）
+        var AMAP_SECURITY_CODE = '';
+        if (AMAP_SECURITY_CODE) { window._AMapSecurityConfig = { securityJsCode: AMAP_SECURITY_CODE }; }
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=3d27557bb7b7cfad571313afb5beedd5"></script>
+    <script>
+        var AMAP_WEB_KEY = '40c91067846da190bf525a5737d8ac06';
+        var map = null;
+        var mapReady = false;
+        var STORAGE_KEY = 'freight_addr_last';
+        var ADDR_IDS = ['addrA', 'addrB', 'addrC', 'addrD'];
+
+        // 点角色定义
+        var POINT_ROLE = {
+            A: { role: 'mainLoad', name: '主单装货', tag: 'A', color: 'orange' },
+            D: { role: 'mainUnload', name: '主单卸货', tag: 'D', color: 'orange' },
+            B: { role: 'subLoad', name: '拼单装货', tag: 'B', color: 'cyan' },
+            C: { role: 'subUnload', name: '拼单卸货', tag: 'C', color: 'cyan' }
+        };
+
+        // 合法路径：主单A在D前，拼单B在C前，共6种
+        var VALID_PATHS = [
+            ['A','B','C','D'],
+            ['A','B','D','C'],
+            ['A','D','B','C'],
+            ['B','A','C','D'],
+            ['B','A','D','C'],
+            ['B','C','A','D']
+        ];
+
+        // 全局：地理编码后的点、最优路径、路线矩阵
+        var geoPoints = {};
+        var optimalPath = null;
+        var routeMatrix = {};
+
+        // ===== 黄牌二轴货车过路费修正系数（相对高德小客车tolls）=====
+        // 依据：各省高速二类货车（2轴黄牌，车长≥6m或总质量≥4.5t）与一类客车费率比
+        var TOLL_FACTORS = {
+            // 山区高原（桥隧多，费率高）
+            '贵州': 1.9, '云南': 1.9, '四川': 1.8, '重庆': 1.8, '西藏': 2.0,
+            '青海': 1.8, '甘肃': 1.7, '陕西': 1.7, '广西': 1.7,
+            // 中部丘陵
+            '湖南': 1.6, '湖北': 1.6, '山西': 1.6, '江西': 1.6,
+            '安徽': 1.5, '福建': 1.6, '河南': 1.5, '新疆': 1.6,
+            // 沿海/平原
+            '广东': 1.6, '江苏': 1.5, '浙江': 1.5, '上海': 1.5, '山东': 1.5,
+            '河北': 1.5, '北京': 1.5, '天津': 1.5, '辽宁': 1.5, '吉林': 1.5,
+            '黑龙江': 1.5, '内蒙古': 1.5, '宁夏': 1.5, '海南': 1.5
+        };
+        var DEFAULT_TOLL_FACTOR = 1.6; // 全国平均兜底
+        function getProvinceFactor(province) {
+            if (!province) return DEFAULT_TOLL_FACTOR;
+            for (var p in TOLL_FACTORS) {
+                if (province.indexOf(p) !== -1) return TOLL_FACTORS[p];
+            }
+            // 自治区简称匹配
+            if (/广西|内蒙|宁夏|新疆|西藏/.test(province)) {
+                var m = province.match(/(广西|内蒙|宁夏|新疆|西藏)/);
+                if (m) {
+                    var map = {'广西':'广西','内蒙':'内蒙古','宁夏':'宁夏','新疆':'新疆','西藏':'西藏'};
+                    var key = map[m[1]];
+                    if (TOLL_FACTORS[key]) return TOLL_FACTORS[key];
+                }
+            }
+            return DEFAULT_TOLL_FACTOR;
+        }
+        // 根据起终点省份计算该段综合系数（同省取该省，跨省取平均）
+        function getRouteTollFactor(fromPoint, toPoint) {
+            var f1 = getProvinceFactor(fromPoint ? fromPoint.province : '');
+            var f2 = getProvinceFactor(toPoint ? toPoint.province : '');
+            if (fromPoint && toPoint && fromPoint.province === toPoint.province) return f1;
+            return Math.round(((f1 + f2) / 2) * 10) / 10;
+        }
+
+        function saveAddr() {
+            try {
+                var data = {};
+                ADDR_IDS.forEach(function(id) {
+                    data[id] = document.getElementById(id).value.trim();
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {}
+        }
+        function loadAddr() {
+            try {
+                var raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return false;
+                var data = JSON.parse(raw);
+                var hasValue = false;
+                ADDR_IDS.forEach(function(id) {
+                    if (data[id]) {
+                        document.getElementById(id).value = data[id];
+                        hasValue = true;
+                    }
+                });
+                return hasValue;
+            } catch (e) { return false; }
+        }
+        function clearAddr() {
+            ADDR_IDS.forEach(function(id) {
+                document.getElementById(id).value = '';
+            });
+            try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            document.getElementById('resultBox').style.display = 'none';
+            hideError();
+            setStatus('已清空');
+            setTimeout(function() { setStatus(''); }, 1200);
+        }
+        window.addEventListener('DOMContentLoaded', function() {
+            loadAddr();
+            ADDR_IDS.forEach(function(id) {
+                document.getElementById(id).addEventListener('input', saveAddr);
+            });
+        });
+        function toggleMap() {
+            var panel = document.getElementById('mapPanel');
+            panel.classList.toggle('collapsed');
+            if (!panel.classList.contains('collapsed') && map) {
+                setTimeout(function() { map.resize(); }, 350);
+            }
+        }
+        function initMap() {
+            if (typeof AMap === 'undefined') {
+                console.warn('高德地图SDK未加载');
+                return false;
+            }
+            try {
+                map = new AMap.Map('mapContainer', {
+                    zoom: 5,
+                    center: [110, 23.5],
+                    resizeEnable: true
+                });
+                mapReady = true;
+                document.getElementById('mapPlaceholder').style.display = 'none';
+                return true;
+            } catch (e) {
+                console.warn('地图初始化失败:', e);
+                return false;
+            }
+        }
+        function jsonp(url, timeout) {
+            timeout = timeout || 15000;
+            return new Promise(function(resolve, reject) {
+                var cbName = 'amap_cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+                var script = document.createElement('script');
+                var timer = setTimeout(function() {
+                    reject(new Error('请求超时，请检查网络连接'));
+                    cleanup();
+                }, timeout);
+                function cleanup() {
+                    clearTimeout(timer);
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    delete window[cbName];
+                }
+                window[cbName] = function(data) {
+                    resolve(data);
+                    cleanup();
+                };
+                script.onerror = function() {
+                    reject(new Error('网络请求失败，请检查网络连接'));
+                    cleanup();
+                };
+                script.src = url + (url.indexOf('?') > -1 ? '&' : '?') + 'callback=' + cbName;
+                document.body.appendChild(script);
+            });
+        }
+        function sleep(ms) {
+            return new Promise(function(r) { setTimeout(r, ms); });
+        }
+        // 从地址中提取城市名，作为地理编码city参数提高准确度
+        function extractCity(address) {
+            var m = address.match(/([\u4e00-\u9fa5]{2,8}?(?:省|自治区|特别行政区))?\s*([\u4e00-\u9fa5]{2,10}?(?:市|自治州|盟|地区))/);
+            if (m && m[2]) return m[2];
+            return '';
+        }
+        // 地址降级：逐步去掉细节，提高解析成功率
+        function degradeAddress(address, level) {
+            var addr = address.trim();
+            if (level === 0) return addr;
+            if (level >= 1) {
+                addr = addr.replace(/[\u4e00-\u9fa5\d]+(?:号|弄|栋|幢|单元|室|楼|层)\s*[\u4e00-\u9fa5\d]*(?:号|室|层)?/g, '');
+            }
+            if (level >= 2) {
+                addr = addr.replace(/[\u4e00-\u9fa5\d]+(?:路|街|大道|巷|胡同|里|坊)\s*/g, '');
+            }
+            if (level >= 3) {
+                addr = addr.replace(/[\u4e00-\u9fa5]{2,8}(?:镇|乡|街道|街道办|办事处)\s*/g, '');
+            }
+            return addr.replace(/\s+/g, ' ').trim();
+        }
+        // 单次地理编码请求
+        function geocodeOnce(address, city) {
+            var url = 'https://restapi.amap.com/v3/geocode/geo?address='
+                + encodeURIComponent(address) + '&key=' + AMAP_WEB_KEY + '&output=JSON';
+            if (city) url += '&city=' + encodeURIComponent(city);
+            return jsonp(url).then(function(data) {
+                if (data.status !== '1' || !data.geocodes || !data.geocodes.length) {
+                    var info = data.info || '未知错误';
+                    var err;
+                    if (info === 'INVALID_USER_KEY') { err = new Error('高德KEY无效，请检查KEY是否正确'); err.code = info; throw err; }
+                    if (info === 'USERKEY_PLAT_NOMATCH') { err = new Error('KEY类型不匹配，请使用「Web服务」类型的KEY'); err.code = info; throw err; }
+                    if (info === 'DAILY_QUERY_OVER_LIMIT') { err = new Error('今日调用次数已超限'); err.code = info; throw err; }
+                    throw new Error('NO_RESULT');
+                }
+                // 选择匹配精度最高的结果（level数字越小越精确）
+                var best = data.geocodes[0];
+                var bestLevel = parseInt(best.level) || 99;
+                for (var i = 1; i < data.geocodes.length; i++) {
+                    var lv = parseInt(data.geocodes[i].level) || 99;
+                    if (lv < bestLevel) {
+                        best = data.geocodes[i];
+                        bestLevel = lv;
+                    }
+                }
+                var g = best;
+                var loc = g.location.split(',');
+                return {
+                    lng: loc[0],
+                    lat: loc[1],
+                    formatted: g.formatted_address,
+                    province: g.province,
+                    city: g.city,
+                    district: g.district
+                };
+            });
+        }
+        // 增强版地理编码：4级地址降级 + 每级2次重试
+        async function geocode(address, tagName) {
+            var city = extractCity(address);
+            var lastErr = null;
+            for (var level = 0; level <= 3; level++) {
+                var degraded = degradeAddress(address, level);
+                if (!degraded) continue;
+                for (var attempt = 0; attempt < 2; attempt++) {
+                    try {
+                        return await geocodeOnce(degraded, city);
+                    } catch (e) {
+                        lastErr = e;
+                        if (e.code === 'INVALID_USER_KEY' || e.code === 'USERKEY_PLAT_NOMATCH' || e.code === 'DAILY_QUERY_OVER_LIMIT') {
+                            throw e;
+                        }
+                        await sleep(300 + attempt * 200);
+                    }
+                }
+            }
+            throw new Error('地址解析失败：' + (tagName || '') + '「' + address + '」，请检查地址是否完整，建议补充省+市+区信息');
+        }
+        async function driving(origin, destination) {
+            var url = 'https://restapi.amap.com/v3/direction/driving?'
+                + 'origin=' + origin.lng + ',' + origin.lat
+                + '&destination=' + destination.lng + ',' + destination.lat
+                + '&key=' + AMAP_WEB_KEY + '&output=JSON&strategy=10&extensions=all';
+            var lastErr = null;
+            for (var attempt = 0; attempt < 3; attempt++) {
+                try {
+                    var data = await jsonp(url);
+                    if (data.status !== '1' || !data.route || !data.route.paths || !data.route.paths.length) {
+                        var info = data.info || '未知错误';
+                        var fatalCodes = ['INVALID_USER_KEY', 'USERKEY_PLAT_NOMATCH', 'DAILY_QUERY_OVER_LIMIT', 'INVALID_USER_DAILY_QUERY_OVER_LIMIT'];
+                        if (fatalCodes.indexOf(info) !== -1) {
+                            var ferr = new Error('路线规划失败（' + info + '）');
+                            ferr.code = info;
+                            throw ferr;
+                        }
+                        throw new Error('路线规划失败（' + info + '）');
+                    }
+                    var path = data.route.paths[0];
+                    var coords = [];
+                    if (path.steps && path.steps.length) {
+                        path.steps.forEach(function(step) {
+                            if (step.polyline) {
+                                var points = step.polyline.split(';');
+                                points.forEach(function(p) {
+                                    var ll = p.split(',');
+                                    if (ll.length === 2) {
+                                        coords.push([parseFloat(ll[0]), parseFloat(ll[1])]);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    return {
+                        distance: parseFloat(path.distance),
+                        duration: parseFloat(path.duration),
+                        tolls: parseFloat(path.tolls) || 0,
+                        toll_distance: parseFloat(path.toll_distance) || 0,
+                        coords: coords
+                    };
+                } catch (e) {
+                    lastErr = e;
+                    if (e.code) throw e; // 致命错误不重试
+                    await sleep(400 + attempt * 300);
+                }
+            }
+            throw lastErr;
+        }
+
+        // 获取两点间路线（双向均已独立请求，时间/距离/过路费均准确）
+        function getRoute(from, to) {
+            return routeMatrix[from][to];
+        }
+
+        // 计算路径总里程
+        function pathDistance(path) {
+            var total = 0;
+            for (var i = 0; i < path.length - 1; i++) {
+                total += getRoute(path[i], path[i+1]).distance;
+            }
+            return total;
+        }
+
+        // 找最优路径
+        function findOptimalPath() {
+            var best = null;
+            var bestDist = Infinity;
+            VALID_PATHS.forEach(function(path) {
+                var d = pathDistance(path);
+                if (d < bestDist) {
+                    bestDist = d;
+                    best = path;
+                }
+            });
+            return best;
+        }
+
+        // 分析路径各段类型
+        function analyzePath(path) {
+            var idxA = path.indexOf('A');
+            var idxD = path.indexOf('D');
+            var idxB = path.indexOf('B');
+            var idxC = path.indexOf('C');
+
+            // 主单路段：A到D之间
+            var mainSegs = [];
+            var ms = Math.min(idxA, idxD), me = Math.max(idxA, idxD);
+            for (var i = ms; i < me; i++) {
+                mainSegs.push(path[i] + '-' + path[i+1]);
+            }
+
+            // 拼单路段：B到C之间
+            var subSegs = [];
+            var ss = Math.min(idxB, idxC), se = Math.max(idxB, idxC);
+            for (var i = ss; i < se; i++) {
+                subSegs.push(path[i] + '-' + path[i+1]);
+            }
+
+            // 共路 = 交集
+            var sharedSegs = mainSegs.filter(function(s) {
+                return subSegs.indexOf(s) !== -1;
+            });
+
+            // 各段详情
+            var segments = [];
+            for (var i = 0; i < path.length - 1; i++) {
+                var key = path[i] + '-' + path[i+1];
+                var type;
+                if (sharedSegs.indexOf(key) !== -1) type = 'shared';
+                else if (mainSegs.indexOf(key) !== -1) type = 'main';
+                else if (subSegs.indexOf(key) !== -1) type = 'sub';
+                else type = 'empty';
+
+                var r = getRoute(path[i], path[i+1]);
+                var fromP = geoPoints[path[i]];
+                var toP = geoPoints[path[i+1]];
+                var factor = getRouteTollFactor(fromP, toP);
+                var tollsOriginal = r.tolls || 0;
+                segments.push({
+                    from: path[i],
+                    to: path[i+1],
+                    key: key,
+                    type: type,
+                    distance: r.distance,
+                    duration: r.duration,
+                    tollsOriginal: tollsOriginal,
+                    tollFactor: factor,
+                    tolls: Math.round(tollsOriginal * factor),
+                    coords: r.coords
+                });
+            }
+
+            // 统计
+            var sharedDist = 0, mainDist = 0, subDist = 0, emptyDist = 0;
+            var sharedTolls = 0, mainTolls = 0, subTolls = 0, emptyTolls = 0;
+            var totalTollsOriginal = 0;
+            segments.forEach(function(seg) {
+                totalTollsOriginal += seg.tollsOriginal;
+                if (seg.type === 'shared') { sharedDist += seg.distance; sharedTolls += seg.tolls; }
+                else if (seg.type === 'main') { mainDist += seg.distance; mainTolls += seg.tolls; }
+                else if (seg.type === 'sub') { subDist += seg.distance; subTolls += seg.tolls; }
+                else { emptyDist += seg.distance; emptyTolls += seg.tolls; }
+            });
+
+            return {
+                segments: segments,
+                sharedSegs: sharedSegs,
+                mainSegs: mainSegs,
+                subSegs: subSegs,
+                sharedDist: sharedDist,
+                mainDist: mainDist + sharedDist,
+                subDist: subDist + sharedDist,
+                emptyDist: emptyDist,
+                sharedTolls: sharedTolls,
+                mainTolls: mainTolls + sharedTolls,
+                subTolls: subTolls + sharedTolls,
+                emptyTolls: emptyTolls,
+                totalTollsOriginal: totalTollsOriginal,
+                totalTolls: sharedTolls + mainTolls + subTolls + emptyTolls
+            };
+        }
+
+        function drawRoute(analysis) {
+            if (!mapReady || !map) return;
+            try {
+                map.clearMap();
+                analysis.segments.forEach(function(seg) {
+                    var color, weight;
+                    if (seg.type === 'shared') { color = '#ff6b35'; weight = 9; }
+                    else if (seg.type === 'empty') { color = 'rgba(255,255,255,0.4)'; weight = 5; }
+                    else { color = '#00d4ff'; weight = 6; }
+
+                    if (seg.coords && seg.coords.length >= 2) {
+                        var polyline = new AMap.Polyline({
+                            path: seg.coords,
+                            strokeColor: color,
+                            strokeWeight: weight,
+                            strokeOpacity: seg.type === 'empty' ? 0.6 : 0.9,
+                            strokeStyle: seg.type === 'empty' ? 'dashed' : 'solid',
+                            lineJoin: 'round'
+                        });
+                        polyline.setMap(map);
+                    }
+                });
+
+                optimalPath.forEach(function(tag) {
+                    var p = geoPoints[tag];
+                    var role = POINT_ROLE[tag];
+                    var color = role.color === 'orange' ? '#ff6b35' : '#00d4ff';
+                    var marker = new AMap.Marker({
+                        position: [p.lng, p.lat],
+                        content: '<div style="background:' + color + ';color:#fff;width:32px;height:32px;border-radius:50%;text-align:center;line-height:32px;font-weight:bold;font-size:15px;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.4);">' + tag + '</div>',
+                        anchor: 'bottom-center',
+                        offset: new AMap.Pixel(0, 0)
+                    });
+                    marker.setMap(map);
+                });
+
+                setTimeout(function() {
+                    map.setFitView(null, false, [50, 50, 50, 50]);
+                }, 200);
+            } catch (e) {
+                console.warn('绘制路线失败:', e);
+            }
+        }
+
+        function fmtDist(meters) { return (meters / 1000).toFixed(1); }
+        function fmtTime(seconds) {
+            var min = Math.round(seconds / 60);
+            if (min < 60) return '约 ' + min + ' 分钟';
+            var h = Math.floor(min / 60);
+            var m = min % 60;
+            return '约 ' + h + ' 小时 ' + (m > 0 ? m + ' 分钟' : '');
+        }
+        function shortName(p) {
+            if (p.city && p.district) return p.city.replace(/市$/, '') + '·' + p.district;
+            if (p.city) return p.city;
+            if (p.province) return p.province;
+            return p.formatted || '';
+        }
+        function setStatus(msg) {
+            document.getElementById('status').innerHTML = msg
+                ? '<span class="loading-dot"></span>' + msg
+                : '';
+        }
+        function showError(msg) {
+            var box = document.getElementById('errorBox');
+            box.innerHTML = '<div class="error-box">⚠️ ' + msg + '</div>';
+            box.style.display = 'block';
+        }
+        function hideError() {
+            document.getElementById('errorBox').style.display = 'none';
+        }
+        function cleanAddress(raw) {
+            // 按行处理，避免全局正则误删地址中的关键词
+            var lines = raw.split(/[\n\r]+/);
+            var addrLines = [];
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                // 跳过纯标签行（单独一行的收货人/电话等）
+                if (/^(收货人|联系人|发货人|姓名|收件人|电话|手机|联系电话|邮编|邮政编码)\s*[:：]/.test(line)) continue;
+                // 跳过纯手机号/座机号行
+                if (/^1[3-9]\d{9}$/.test(line)) continue;
+                if (/^0\d{2,3}[-\s]?\d{7,8}$/.test(line)) continue;
+                // 行首地址标签，提取后面内容
+                line = line.replace(/^(收货地址|发货地址|装货地址|卸货地址|详细地址|收货|发货|地址|所在地区)\s*[:：]?\s*/, '');
+                // 内联标签必须带冒号才清理，避免误删"联系人路"等地名
+                line = line.replace(/(收货人|联系人|发货人|姓名|收件人)\s*[:：]\s*[\u4e00-\u9fa5A-Za-z·]{2,5}\s*/g, '');
+                line = line.replace(/1[3-9]\d{9}/g, '');
+                line = line.replace(/0\d{2,3}[-\s]?\d{7,8}/g, '');
+                line = line.replace(/[（(]\s*[0-9]{4,6}\s*[）)]/g, '');
+                line = line.trim();
+                if (line) addrLines.push(line);
+            }
+            return addrLines.join(' ').replace(/\s+/g, ' ').trim();
+        }
+        function handlePaste(inputId) {
+            setTimeout(function() {
+                cleanInput(inputId);
+            }, 50);
+        }
+        function cleanInput(inputId) {
+            var el = document.getElementById(inputId);
+            var raw = el.value;
+            if (!raw.trim()) return;
+            var clean = cleanAddress(raw);
+            if (clean && clean !== raw) {
+                el.value = clean;
+                saveAddr();
+            }
+        }
+
+        // 导航：最优路径的第segIndex段
+        function navigateSegment(segIndex) {
+            if (!optimalPath) { alert('请先计算路线'); return; }
+            var from = optimalPath[segIndex];
+            var to = optimalPath[segIndex + 1];
+            var fp = geoPoints[from], tp = geoPoints[to];
+            var url = 'https://uri.amap.com/navigation?from=' + fp.lng + ',' + fp.lat
+                + '&to=' + tp.lng + ',' + tp.lat
+                + '&mode=car&policy=1&src=freight_calc&coordinate=gaode&callnative=1';
+            window.open(url, '_blank');
+        }
+
+        // 渲染路线流程图
+        function renderRouteFlow(path, analysis) {
+            var html = '';
+            for (var i = 0; i < path.length; i++) {
+                var tag = path[i];
+                var role = POINT_ROLE[tag];
+                var color = role.color === 'orange'
+                    ? 'linear-gradient(135deg,#ff6b35,#ff8c5a)'
+                    : 'linear-gradient(135deg,#00d4ff,#00b8e6)';
+                html += '<div class="route-node">'
+                    + '<div class="node-dot" style="background:' + color + '">' + tag + '</div>'
+                    + '<div class="node-role">' + role.name + '</div>'
+                    + '<div class="node-name">' + shortName(geoPoints[tag]) + '</div>'
+                    + '</div>';
+                if (i < path.length - 1) {
+                    var seg = analysis.segments[i];
+                    var lineClass = seg.type === 'shared' ? 'shared' : (seg.type === 'empty' ? 'empty' : 'solo');
+                    html += '<div class="route-line ' + lineClass + '">'
+                        + '<span class="line-dist">' + fmtDist(seg.distance) + 'km</span>'
+                        + '</div>';
+                }
+            }
+            document.getElementById('routeFlow').innerHTML = html;
+        }
+
+        // 渲染分段明细
+        function renderSegments(analysis) {
+            var html = '';
+            analysis.segments.forEach(function(seg, idx) {
+                var rowClass, badge, badgeText, navClass;
+                if (seg.type === 'shared') {
+                    rowClass = 'shared-row';
+                    badge = 'badge-shared';
+                    badgeText = '共路';
+                    navClass = 'shared';
+                } else if (seg.type === 'empty') {
+                    rowClass = 'empty-row';
+                    badge = 'badge-empty';
+                    badgeText = '空驶';
+                    navClass = '';
+                } else if (seg.type === 'main') {
+                    rowClass = '';
+                    badge = 'badge-main';
+                    badgeText = '主单';
+                    navClass = '';
+                } else {
+                    rowClass = '';
+                    badge = 'badge-sub';
+                    badgeText = '拼单';
+                    navClass = '';
+                }
+
+                html += '<div class="data-row ' + rowClass + '">'
+                    + '<span class="row-label">' + seg.from + ' → ' + seg.to
+                    + '<span class="badge ' + badge + '">' + badgeText + '</span>'
+                    + '<button class="navi-pill ' + navClass + '" onclick="navigateSegment(' + idx + ')">🧭 导航</button>'
+                    + '</span>'
+                    + '<span class="row-value">' + fmtDist(seg.distance) + ' km<small>' + fmtTime(seg.duration) + '</small></span>'
+                    + '</div>';
+            });
+            document.getElementById('segmentList').innerHTML = html;
+        }
+
+        async function calcRoute() {
+            var addrA = document.getElementById('addrA').value.trim();
+            var addrB = document.getElementById('addrB').value.trim();
+            var addrC = document.getElementById('addrC').value.trim();
+            var addrD = document.getElementById('addrD').value.trim();
+            if (!addrA || !addrB || !addrC || !addrD) {
+                showError('四个地址都要填写哦');
                 return;
             }
-            if(data[key] !== undefined && document.getElementById(key)){
-                document.getElementById(key).value = data[key];
+            hideError();
+            document.getElementById('resultBox').style.display = 'none';
+            var btn = document.getElementById('calcBtn');
+            btn.disabled = true;
+            btn.innerText = '规划中...';
+            document.getElementById('mapPanel').classList.remove('collapsed');
+            if (!mapReady) {
+                initMap();
             }
-        });
-        updateEmptyMileText();
-        updateThemeIcon();
-    }catch(e){}
-}
-// 保存缓存
-function saveCache(){
-    try{
-        const data = {};
-        cacheKeys.forEach(key=>{
-            if(key === 'theme'){
-                data[key] = document.body.classList.contains('light') ? 'light' : 'dark';
+            try {
+                // 逐个串行解析地址，避免并发限流，失败时明确指出哪个地址
+                var addrMap = { A: addrA, B: addrB, C: addrC, D: addrD };
+                var tags = ['A', 'B', 'C', 'D'];
+                geoPoints = {};
+                for (var ti = 0; ti < tags.length; ti++) {
+                    var tag = tags[ti];
+                    setStatus('正在解析地址 ' + tag + '（' + (ti + 1) + '/4）...');
+                    geoPoints[tag] = await geocode(addrMap[tag], tag);
+                }
+                setStatus('正在计算12段路线矩阵（受控并发）...');
+                // 计算4点间12段有向距离矩阵（双向独立请求，时间更准确）
+                var pairs = [
+                    ['A','B'],['B','A'],
+                    ['A','C'],['C','A'],
+                    ['A','D'],['D','A'],
+                    ['B','C'],['C','B'],
+                    ['B','D'],['D','B'],
+                    ['C','D'],['D','C']
+                ];
+                var routeResults = new Array(pairs.length);
+                var nextIdx = 0;
+                async function routeWorker() {
+                    while (nextIdx < pairs.length) {
+                        var idx = nextIdx++;
+                        setStatus('正在计算路线（' + (idx + 1) + '/12）...');
+                        routeResults[idx] = await driving(geoPoints[pairs[idx][0]], geoPoints[pairs[idx][1]]);
+                    }
+                }
+                var workers = [];
+                for (var w = 0; w < 2; w++) workers.push(routeWorker());
+                await Promise.all(workers);
+                routeMatrix = {};
+                ['A','B','C','D'].forEach(function(k) { routeMatrix[k] = {}; });
+                pairs.forEach(function(pair, i) {
+                    routeMatrix[pair[0]][pair[1]] = routeResults[i];
+                });
+
+                // 找最优路径
+                optimalPath = findOptimalPath();
+                var analysis = analyzePath(optimalPath);
+
+                var totalDist = 0, totalTime = 0;
+                analysis.segments.forEach(function(seg) {
+                    totalDist += seg.distance;
+                    totalTime += seg.duration;
+                });
+                var ratio = totalDist > 0 ? (analysis.sharedDist / totalDist * 100) : 0;
+                var directAD = routeMatrix['A']['D'].distance;
+                var directADFactor = getRouteTollFactor(geoPoints['A'], geoPoints['D']);
+                var directADTolls = Math.round((routeMatrix['A']['D'].tolls || 0) * directADFactor);
+                var detourKm = totalDist - directAD;
+                var detourRatio = directAD > 0 ? (detourKm / directAD * 100) : 0;
+
+                // 费用估算
+                var fuelConsume = parseFloat(document.getElementById('fuelConsume').value) || 30;
+                var fuelPrice = parseFloat(document.getElementById('fuelPrice').value) || 7.5;
+                var fuelPerKm = fuelConsume / 100 * fuelPrice; // 每公里油费
+                var totalKm = totalDist / 1000;
+                var totalFuelCost = totalKm * fuelPerKm;
+                var totalTollCost = analysis.totalTolls;
+                var totalCost = totalFuelCost + totalTollCost;
+
+                // 各段费用
+                var sharedKm = analysis.sharedDist / 1000;
+                var mainSoloKm = (analysis.mainDist - analysis.sharedDist) / 1000;
+                var subSoloKm = (analysis.subDist - analysis.sharedDist) / 1000;
+                var emptyKm = analysis.emptyDist / 1000;
+                var sharedCost = sharedKm * fuelPerKm + analysis.sharedTolls;
+                var mainSoloCost = mainSoloKm * fuelPerKm + (analysis.mainTolls - analysis.sharedTolls);
+                var subSoloCost = subSoloKm * fuelPerKm + (analysis.subTolls - analysis.sharedTolls);
+                var emptyCost = emptyKm * fuelPerKm + analysis.emptyTolls;
+                // 分摊：共路各担一半，单独路段归各自，空驶归主单
+                var mainBear = mainSoloCost + sharedCost / 2 + emptyCost;
+                var subBear = subSoloCost + sharedCost / 2;
+
+                // 拼单建议
+                var sugIcon, sugText, sugDesc, sugClass, sugLevel;
+                if (detourKm <= 0) {
+                    sugIcon = '🎉'; sugText = '完全顺路，强烈推荐拼单！'; sugClass = 'sug-green'; sugLevel = 'strong';
+                    sugDesc = '拼单不产生任何绕路，白赚一笔运费。';
+                } else if (detourRatio <= 5) {
+                    sugIcon = '✅'; sugText = '绕路极少，推荐拼单'; sugClass = 'sug-green'; sugLevel = 'recommend';
+                    sugDesc = '仅多跑 ' + fmtDist(detourKm) + ' 公里（' + detourRatio.toFixed(1) + '%），油费约多 ' + (detourKm / 1000 * fuelPerKm).toFixed(0) + ' 元，基本不亏。';
+                } else if (detourRatio <= 15) {
+                    sugIcon = '👍'; sugText = '绕路可接受，建议拼单'; sugClass = 'sug-blue'; sugLevel = 'acceptable';
+                    sugDesc = '多跑 ' + fmtDist(detourKm) + ' 公里（' + detourRatio.toFixed(1) + '%），额外油费约 ' + (detourKm / 1000 * fuelPerKm).toFixed(0) + ' 元，拼单运费覆盖即可。';
+                } else if (detourRatio <= 30) {
+                    sugIcon = '⚠️'; sugText = '绕路中等，看运费决定'; sugClass = 'sug-yellow'; sugLevel = 'warn';
+                    sugDesc = '多跑 ' + fmtDist(detourKm) + ' 公里（' + detourRatio.toFixed(1) + '%），额外油费约 ' + (detourKm / 1000 * fuelPerKm).toFixed(0) + ' 元，确认拼单运费划算再接。';
+                } else {
+                    sugIcon = '🛑'; sugText = '绕路太多，不建议拼单'; sugClass = 'sug-red'; sugLevel = 'notrecommend';
+                    sugDesc = '多跑 ' + fmtDist(detourKm) + ' 公里（' + detourRatio.toFixed(1) + '%），额外油费约 ' + (detourKm / 1000 * fuelPerKm).toFixed(0) + ' 元，除非运费很高否则不划算。';
+                }
+
+                // 渲染
+                renderRouteFlow(optimalPath, analysis);
+                document.getElementById('ovTotal').innerHTML = fmtDist(totalDist) + '<span class="stat-unit">km</span>';
+                document.getElementById('ovShared').innerHTML = fmtDist(analysis.sharedDist) + '<span class="stat-unit">km</span>';
+                document.getElementById('ovMain').innerHTML = fmtDist(analysis.mainDist) + '<span class="stat-unit">km</span>';
+                document.getElementById('ovSub').innerHTML = fmtDist(analysis.subDist) + '<span class="stat-unit">km</span>';
+                document.getElementById('detDirect').innerText = fmtDist(directAD);
+                document.getElementById('detTotal').innerText = fmtDist(totalDist);
+                document.getElementById('detourKm').innerText = fmtDist(detourKm);
+                document.getElementById('sharedDist').innerText = fmtDist(analysis.sharedDist);
+                document.getElementById('ratioFill').style.width = ratio + '%';
+                document.getElementById('ratioText').innerText = '共路占总里程 ' + ratio.toFixed(1) + '%';
+
+                // 拼单建议
+                var sugCard = document.getElementById('suggestCard');
+                sugCard.className = 'suggest-card ' + sugClass;
+                sugCard.style.display = 'block';
+                document.getElementById('sugIcon').innerText = sugIcon;
+                document.getElementById('sugText').innerText = sugText;
+                document.getElementById('sugDesc').innerText = sugDesc;
+
+                // 费用
+                document.getElementById('costTotal').innerText = totalCost.toFixed(0);
+                document.getElementById('costFuel').innerHTML = totalFuelCost.toFixed(0) + '<span class="cb-yuan"> 元</span>';
+                document.getElementById('costToll').innerHTML = totalTollCost.toFixed(0) + '<span class="cb-yuan"> 元</span>'
+                    + '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:3px;line-height:1.3;">黄牌二轴估算<span style="margin:0 3px;">·</span>高德小车' + analysis.totalTollsOriginal.toFixed(0) + '元</div>';
+                if (analysis.sharedDist > 0) {
+                    document.getElementById('splitCard').style.display = 'block';
+                    document.getElementById('splitShared').innerText = sharedCost.toFixed(0) + ' 元';
+                    document.getElementById('splitMain').innerText = mainBear.toFixed(0) + ' 元';
+                    document.getElementById('splitSub').innerText = subBear.toFixed(0) + ' 元';
+                } else {
+                    document.getElementById('splitCard').style.display = 'none';
+                }
+
+                renderSegments(analysis);
+                document.getElementById('resTotal').innerHTML = fmtDist(totalDist) + ' km<small>' + fmtTime(totalTime) + '</small>';
+
+                drawRoute(analysis);
+                document.getElementById('resultBox').style.display = 'block';
+                setStatus('');
+                btn.innerText = '重新规划';
+
+                // 保存路线结果供利润页使用
+                var provList = [];
+                optimalPath.forEach(function(tag) {
+                    var p = geoPoints[tag] && geoPoints[tag].province;
+                    if (p && provList.indexOf(p) === -1) provList.push(p);
+                });
+                saveRouteResult({
+                    totalKm: totalDist / 1000,
+                    totalTolls: totalTollCost,
+                    totalTollsOriginal: analysis.totalTollsOriginal,
+                    emptyKm: analysis.emptyDist / 1000,
+                    emptyTolls: analysis.emptyTolls,
+                    mainTolls: analysis.mainTolls,
+                    sharedKm: analysis.sharedDist / 1000,
+                    pinSoloKm: (analysis.subDist - analysis.sharedDist) / 1000,
+                    pinTotalKm: analysis.subDist / 1000,
+                    mainKm: analysis.mainDist / 1000,
+                    directKm: directAD / 1000,
+                    directTolls: directADTolls,
+                    detourKm: (totalDist - directAD) / 1000,
+                    routeTotalKm: totalDist / 1000,
+                    fuelConsume: fuelConsume,
+                    fuelPrice: fuelPrice,
+                    provinces: provList,
+                    sugLevel: sugLevel,
+                    sugIcon: sugIcon,
+                    sugText: sugText,
+                    sugDesc: sugDesc,
+                    sugClass: sugClass,
+                    time: new Date().toLocaleString()
+                });
+                // 路线计算完成后立即同步到利润页输入框（不等切换tab）
+                var _freshData = loadRouteResult();
+                if (_freshData) {
+                    try { applyRouteDataToProfit(_freshData); } catch(e) { console.warn('同步利润页失败', e); }
+                }
+                setTimeout(function() {
+                    document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 150);
+            } catch (e) {
+                showError(e.message);
+                setStatus('');
+                btn.innerText = '智能规划路线';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        /* ==================== 拍照扫描 OCR ==================== */
+        var scanWorker = null;
+        var scanBusy = false;
+
+        function toggleScanCard() {
+            var card = document.getElementById('scanCard');
+            var body = document.getElementById('scanCardBody');
+            var collapsed = card.classList.toggle('scan-collapsed');
+            if (collapsed) {
+                body.style.maxHeight = '0';
+            } else {
+                body.style.maxHeight = body.scrollHeight + 'px';
+                setTimeout(function() { body.style.maxHeight = 'none'; }, 380);
+            }
+        }
+
+        // 图片压缩：最大宽度1200px，加快识别速度
+        function compressImage(file) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var MAX_W = 1200;
+                        var w = img.width, h = img.height;
+                        if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+                        var canvas = document.createElement('canvas');
+                        canvas.width = w; canvas.height = h;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    };
+                    img.onerror = function() { reject(new Error('图片读取失败')); };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() { reject(new Error('图片读取失败')); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 从OCR全文中提取候选地址行
+        function extractCandidates(text) {
+            var lines = text.split(/[\n\r]+/);
+            var cands = [];
+            var seen = {};
+            var addrKw = /(省|市|区|县|镇|乡|街道|路|街|道|巷|弄|号|村|组|大道|工业园|开发区|物流|货运|市场|城|苑|园|栋|单元|室|楼)/;
+            for (var i = 0; i < lines.length; i++) {
+                var raw = lines[i].trim();
+                if (!raw) continue;
+                var cleaned = cleanAddress(raw);
+                if (!cleaned || cleaned.length < 5) continue;
+                // 必须含中文
+                if (!/[\u4e00-\u9fa5]/.test(cleaned)) continue;
+                // 排除纯电话/手机号
+                if (/^1[3-9]\d{9}$/.test(cleaned.replace(/\D/g, ''))) continue;
+                // 排除明显非地址行（姓名+电话、货物名称等）
+                if (/^(收货人|联系人|发货人|姓名|收件人|电话|手机|货物|品名|重量|件数|运费|备注|日期|单号|编号)/.test(cleaned)) continue;
+                if (!addrKw.test(cleaned)) continue;
+                if (seen[cleaned]) continue;
+                seen[cleaned] = true;
+                cands.push(cleaned);
+            }
+            return cands;
+        }
+
+        function renderCandidates(cands) {
+            var box = document.getElementById('candList');
+            if (!cands.length) {
+                box.innerHTML = '<div class="cand-title" style="margin-top:4px;">未自动识别到地址行，可在上方文本框手动修改后填入</div>';
                 return;
             }
-            if(document.getElementById(key)) data[key] = document.getElementById(key).value;
-        });
-        safeSet("truck_calc_cache", JSON.stringify(data));
-    }catch(e){}
-}
-// 主题切换
-function toggleTheme(){
-    document.body.classList.toggle('light');
-    updateThemeIcon();
-    saveCache();
-}
-function updateThemeIcon(){
-    document.getElementById("btnTheme").innerText = document.body.classList.contains('light') ? "☾" : "☀";
-}
-// 单价微调
-function adjustValue(id, step){
-    const input = document.getElementById(id);
-    let val = parseFloat(input.value) || 0;
-    val = Math.max(0, +(val + Number(step)).toFixed(2));
-    input.value = val;
-    saveCache();
-}
-// 更新放空里程显示
-function updateEmptyMileText(){
-    const km = getNum("emptyKm");
-    document.getElementById("emptyMileText").innerText = km + " km";
-}
-// 页面切换
-let showHistory = false;
-function switchPage(){
-    showHistory = !showHistory;
-    document.getElementById("pageCalc").classList.toggle("active", !showHistory);
-    document.getElementById("pageHis").classList.toggle("active", showHistory);
-    if(showHistory) renderHistory();
-}
-// 历史记录
-function getHistoryList(){
-    try{return JSON.parse(safeGet("truck_calc_history") || "[]");}catch(e){return [];}
-}
-function addHistory(item){
-    try{
-        const list = getHistoryList();
-        list.unshift(item);
-        if(list.length > 8) list.length = 8;
-        safeSet("truck_calc_history", JSON.stringify(list));
-    }catch(e){}
-}
-function deleteHistory(index){
-    const list = getHistoryList();
-    list.splice(index, 1);
-    safeSet("truck_calc_history", JSON.stringify(list));
-    renderHistory();
-}
-function useHistory(index){
-    const list = getHistoryList();
-    const item = list[index];
-    if(!item || !item.data) return;
-    Object.keys(item.data).forEach(key=>{
-        if(document.getElementById(key)) document.getElementById(key).value = item.data[key];
-    });
-    saveCache();
-    updateEmptyMileText();
-    switchPage();
-    calculate();
-}
-function renderHistory(){
-    const list = getHistoryList();
-    const box = document.getElementById("hisList");
-    if(list.length === 0){
-        box.innerHTML = '<div class="history-empty">暂无测算记录<br>计算后自动保存</div>';
-        return;
-    }
-    let html = "";
-    list.forEach((item, i)=>{
-        const isOk = Number(item.totalProfit) >= 0;
-        html += `<div class="his-item">
-            <div class="his-head">
-                <div class="his-time">${item.time}</div>
-                <div class="his-btns">
-                    <button class="his-btn use" data-use="${i}">复用</button>
-                    <button class="his-btn view" data-view="${i}">明细</button>
-                    <button class="his-btn del" data-del="${i}">删除</button>
-                </div>
-            </div>
-            <div class="his-sum">
-                <div class="big ${isOk?'ok':'no'}">净赚 ${item.totalProfit} 元</div>
-                <p>全程${item.allKm}km｜${item.type}</p>
-                <p>每公里${item.perKm}元</p>
-                <p>${item.tip}</p>
-            </div>
-            <div class="his-detail" data-detail="${i}"><div class="detail-inner">${item.detail}</div></div>
-        </div>`;
-    });
-    box.innerHTML = html;
-    box.querySelectorAll('.his-btn.del').forEach(btn=>{
-        btn.onclick = ()=> deleteHistory(Number(btn.dataset.del));
-    });
-    box.querySelectorAll('.his-btn.use').forEach(btn=>{
-        btn.onclick = ()=> useHistory(Number(btn.dataset.use));
-    });
-    box.querySelectorAll('.his-btn.view').forEach(btn=>{
-        btn.onclick = ()=>{
-            const idx = Number(btn.dataset.view);
-            document.querySelector(`[data-detail="${idx}"]`).classList.toggle('open');
+            var labels = { addrA: 'A', addrD: 'D', addrB: 'B', addrC: 'C' };
+            var cls = { addrA: 'ca', addrD: 'cd', addrB: 'cb', addrC: 'cc' };
+            var html = '<div class="cand-title">识别到 ' + cands.length + ' 个地址，点字母一键填入：</div>';
+            cands.forEach(function(addr, idx) {
+                html += '<div class="cand-item">'
+                    + '<span class="cand-addr">' + escapeHtml(addr) + '</span>'
+                    + '<span class="cand-btns">'
+                    + '<button class="ca" onclick="fillAddrDirect(\'addrA\',' + idx + ')" title="填入A主单装货">A</button>'
+                    + '<button class="cd" onclick="fillAddrDirect(\'addrD\',' + idx + ')" title="填入D主单卸货">D</button>'
+                    + '<button class="cb" onclick="fillAddrDirect(\'addrB\',' + idx + ')" title="填入B拼单装货">B</button>'
+                    + '<button class="cc" onclick="fillAddrDirect(\'addrC\',' + idx + ')" title="填入C拼单卸货">C</button>'
+                    + '</span></div>';
+            });
+            box.innerHTML = html;
         }
-    });
-}
-// 核心计算
-let lastCalcData = {};
-function calculate(){
-    const oilUse = Number(document.getElementById("oilUse").value);
-    const oilPrice = getNum("oilPrice");
-    const roadPrice = getNum("roadPrice");
-    const mainKm = getNum("mainKm");
-    const mainMoney = getNum("mainMoney");
-    const infoFee = getNum("infoFee");
-    const emptyKm = getNum("emptyKm");
-    const emptyHigh = getNum("emptyHigh");
-    const mainOilCost = mainKm * oilUse / 100 * oilPrice;
-    const mainRoadCost = mainKm * roadPrice;
-    const mainAllCost = mainOilCost + mainRoadCost;
-    const mainProfit = mainMoney - mainAllCost - infoFee;
-    const mainPerCost = mainKm > 0 ? mainAllCost / mainKm : 0;
-    const emptyOilCost = emptyKm * EMPTY_OIL_RATE / 100 * oilPrice;
-    const emptyRoadCost = emptyHigh * roadPrice;
-    const emptyAllCost = emptyOilCost + emptyRoadCost;
-    let pinMoneySum = 0, pinKmSum = 0, pinHighSum = 0, pinCount = 0;
-    ["p1","p2","p3"].forEach(p=>{
-        const k = getNum(p+"km"), h = getNum(p+"high"), m = getNum(p+"money");
-        if(k > 0 && m > 0){
-            pinCount++;
-            pinMoneySum += m;
-            pinKmSum += k;
-            pinHighSum += h;
+
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
-    });
-    const pinOilCost = pinKmSum * oilUse / 100 * oilPrice;
-    const pinRoadCost = pinHighSum * roadPrice;
-    const allIncome = mainMoney + pinMoneySum;
-    const allOilCost = mainOilCost + emptyOilCost + pinOilCost;
-    const allRoadCost = mainRoadCost + emptyRoadCost + pinRoadCost;
-    const allCost = allOilCost + allRoadCost + infoFee;
-    const totalProfit = allIncome - allCost;
-    const totalKm = mainKm + emptyKm + pinKmSum;
-    const perKmProfit = totalKm > 0 ? totalProfit / totalKm : 0;
-    const profitRate = allIncome > 0 ? totalProfit / allIncome : 0;
-    const noPinProfit = mainProfit - emptyAllCost;
-    lastCalcData = {totalProfit, totalKm, perKmProfit, allIncome, allOilCost, allRoadCost, allCost, profitRate};
-    const resultBox = document.getElementById("resultBox");
-    resultBox.classList.add("show");
-    document.getElementById("totalProfit").innerText = formatMoney(totalProfit) + " 元";
-    document.getElementById("perKm").innerText = formatMoney(perKmProfit) + " 元";
-    document.getElementById("mainCost").innerText = formatMoney(mainPerCost) + " 元";
-    document.getElementById("emptyCost").innerText = formatMoney(emptyAllCost) + " 元";
-    document.getElementById("allKm").innerText = totalKm.toFixed(0) + " km";
-    document.getElementById("sumIn").innerText = formatMoney(allIncome) + " 元";
-    document.getElementById("sumOil").innerText = formatMoney(allOilCost) + " 元";
-    document.getElementById("sumRoad").innerText = formatMoney(allRoadCost) + " 元";
-    document.getElementById("sumInfo").innerText = formatMoney(infoFee) + " 元";
-    document.getElementById("sumAll").innerText = formatMoney(allCost) + " 元";
-    const fullLen = 301.59;
-    const showRate = Math.max(0, Math.min(1, profitRate));
-    document.getElementById("gaugeBar").style.strokeDashoffset = fullLen * (1 - showRate);
-    document.getElementById("rateNum").innerText = (profitRate * 100).toFixed(1) + "%";
-    let mileType, tipText;
-    const tipEl = document.getElementById("tipText");
-    tipEl.className = "tip-box";
-    if(totalKm <= 50){
-        mileType = "超短途倒短";
-        if(totalProfit >= 350){ tipEl.classList.add("tip-good"); tipText = "优质倒短，覆盖当日人工"; }
-        else if(totalProfit >= 260){ tipEl.classList.add("tip-warn"); tipText = "仅放空兜底，不专程跑"; }
-        else{ tipEl.classList.add("tip-bad"); tipText = "低价单，不建议干"; }
-    }else if(totalKm <= 300){
-        mileType = "短途";
-        if(perKmProfit >= 1.5){ tipEl.classList.add("tip-good"); tipText = "高价货源，优先接"; }
-        else if(perKmProfit >= 1.0){ tipEl.classList.add("tip-warn"); tipText = "顺路带回程货才可接"; }
-        else{ tipEl.classList.add("tip-bad"); tipText = "行业低价，专程跑亏人工"; }
-    }else if(totalKm <= 800){
-        mileType = "中长途";
-        if(perKmProfit >= 1.2){ tipEl.classList.add("tip-good"); tipText = "干线好价，稳定盈利"; }
-        else if(perKmProfit >= 0.7){ tipEl.classList.add("tip-warn"); tipText = "无放空可临时补档期"; }
-        else{ tipEl.classList.add("tip-bad"); tipText = "运价偏低，长期不合算"; }
-    }else{
-        mileType = "长途干线";
-        if(perKmProfit >= 1.0){ tipEl.classList.add("tip-good"); tipText = "长途优质单，摊薄固定成本"; }
-        else if(perKmProfit >= 0.55){ tipEl.classList.add("tip-warn"); tipText = "必须匹配返程货再考虑"; }
-        else{ tipEl.classList.add("tip-bad"); tipText = "亏本低价，慎接"; }
-    }
-    tipEl.innerText = tipText;
-    lastCalcData.tipText = tipText;
-    lastCalcData.mileType = mileType;
-    // 拼单对比面板
-    const compareBox = document.getElementById("compareBox");
-    if(pinCount > 0){
-        compareBox.style.display = "block";
-        const addProfit = totalProfit - noPinProfit;
-        document.getElementById("noPinMoney").innerText = formatMoney(noPinProfit);
-        document.getElementById("addMoney").innerText = (addProfit >= 0 ? "+" : "") + formatMoney(addProfit);
-        document.getElementById("withPinMoney").innerText = formatMoney(totalProfit);
-        const tagEl = document.getElementById("compareTag");
-        if(addProfit > 0){ compareBox.classList.remove("warn"); tagEl.innerText = "值得拼"; }
-        else{ compareBox.classList.add("warn"); tagEl.innerText = "不划算"; }
-    }else{
-        compareBox.style.display = "none";
-    }
-    let detailHtml = `<div class="detail-block"><div class="detail-title">收入明细</div>
-        <div class="detail-row"><span>主单运费</span><span class="text-in">${formatMoney(mainMoney)} 元</span></div>`;
-    ["p1","p2","p3"].forEach((p, idx)=>{
-        const k = getNum(p+"km"), m = getNum(p+"money");
-        if(k > 0) detailHtml += `<div class="detail-row"><span>拼单${idx+1}运费</span><span class="text-in">${formatMoney(m)} 元</span></div>`;
-    });
-    detailHtml += `</div>
-    <div class="detail-block"><div class="detail-title">主单成本</div>
-        <div class="detail-row"><span>里程</span><span>${mainKm.toFixed(0)} km</span></div>
-        <div class="detail-row"><span>燃油(${oilUse}L/100km)</span><span class="text-out">${formatMoney(mainOilCost)} 元</span></div>
-        <div class="detail-row"><span>高速费</span><span class="text-out">${formatMoney(mainRoadCost)} 元</span></div>
-        <div class="detail-row"><span>信息费</span><span class="text-out">${formatMoney(infoFee)} 元</span></div>
-        <div class="detail-row"><span>主单总成本</span><span class="text-out">${formatMoney(mainAllCost + infoFee)} 元</span></div>
-    </div>
-    <div class="detail-block"><div class="detail-title">放空成本</div>
-        <div class="detail-row"><span>放空里程</span><span>${emptyKm.toFixed(0)} km</span></div>
-        <div class="detail-row"><span>放空油费</span><span class="text-out">${formatMoney(emptyOilCost)} 元</span></div>
-        <div class="detail-row"><span>放空高速</span><span class="text-out">${formatMoney(emptyRoadCost)} 元</span></div>
-    </div>`;
-    
-    if(pinCount > 0){
-        detailHtml += `<div class="detail-block"><div class="detail-title">拼单成本</div>`;
-        ["p1","p2","p3"].forEach((p, idx)=>{
-            const k = getNum(p+"km"), h = getNum(p+"high"), m = getNum(p+"money");
-            if(k > 0 && m > 0){
-                const sOil = k * oilUse / 100 * oilPrice;
-                const sRoad = h * roadPrice;
-                detailHtml += `
-                <div class="detail-row"><span>拼单${idx+1}里程</span><span>${k.toFixed(0)} km</span></div>
-                <div class="detail-row"><span>拼单${idx+1}油费</span><span class="text-out">${formatMoney(sOil)} 元</span></div>
-                <div class="detail-row"><span>拼单${idx+1}高速费</span><span class="text-out">${formatMoney(sRoad)} 元</span></div>`;
+
+        // 候选地址直接填入
+        function fillAddrDirect(inputId, idx) {
+            var cands = window._scanCandidates || [];
+            if (cands[idx]) {
+                document.getElementById(inputId).value = cands[idx];
+                saveAddr();
+                flashFillBtn(inputId);
+            }
+        }
+
+        // 全文清理后填入
+        function fillScannedTo(inputId) {
+            var raw = document.getElementById('scanFullText').value;
+            if (!raw.trim()) { alert('没有识别到内容，请重新拍照'); return; }
+            var cleaned = cleanAddress(raw);
+            if (!cleaned) { alert('文本中未提取到有效地址，请手动修改后再试'); return; }
+            document.getElementById(inputId).value = cleaned;
+            saveAddr();
+            flashFillBtn(inputId);
+        }
+
+        function flashFillBtn(inputId) {
+            var map = {
+                addrA: { sel: '.fill-btn.to-a', color: 'rgba(255,107,53,0.2)' },
+                addrD: { sel: '.fill-btn.to-d', color: 'rgba(255,107,53,0.2)' },
+                addrB: { sel: '.fill-btn.to-b', color: 'rgba(0,212,255,0.2)' },
+                addrC: { sel: '.fill-btn.to-c', color: 'rgba(0,212,255,0.2)' }
+            };
+            var cfg = map[inputId];
+            var btn = cfg && document.querySelector(cfg.sel);
+            if (btn) {
+                var orig = btn.innerText;
+                btn.innerText = '✓ 已填入';
+                btn.style.background = cfg.color;
+                setTimeout(function() {
+                    btn.innerText = orig;
+                    btn.style.background = '';
+                }, 1200);
+            }
+        }
+
+        function setScanProgress(pct, text) {
+            document.getElementById('scanProgress').style.display = 'block';
+            document.getElementById('scanProgressBar').style.width = pct + '%';
+            if (text) document.getElementById('scanProgressText').innerText = text;
+        }
+
+        function resetScan() {
+            document.getElementById('scanFile').value = '';
+            document.getElementById('scanPreviewWrap').style.display = 'none';
+            document.getElementById('scanResultBox').style.display = 'none';
+            document.getElementById('scanProgress').style.display = 'none';
+            document.getElementById('scanBtn').disabled = false;
+            document.getElementById('scanBtn').innerText = '📸 拍照 / 从相册选择运单图片';
+            document.getElementById('scanTip').style.display = 'block';
+            window._scanCandidates = [];
+        }
+
+        async function runOCR(dataUrl) {
+            // 懒加载worker
+            if (!scanWorker) {
+                setScanProgress(5, '正在加载中文识别引擎（首次需下载语言包）...');
+                scanWorker = await Tesseract.createWorker(['chi_sim', 'eng'], 1, {
+                    logger: function(m) {
+                        if (m.status === 'recognizing text') {
+                            setScanProgress(Math.round(m.progress * 100), '正在识别文字 ' + Math.round(m.progress * 100) + '%');
+                        } else if (m.status === 'loading tesseract core') {
+                            setScanProgress(10, '正在加载识别核心...');
+                        } else if (m.status === 'initializing tesseract') {
+                            setScanProgress(20, '正在初始化...');
+                        } else if (m.status === 'loading language traineddata') {
+                            setScanProgress(35, '正在下载中文语言包...');
+                        } else if (m.status === 'initializing api') {
+                            setScanProgress(55, '正在初始化识别接口...');
+                        }
+                    }
+                });
+            }
+            setScanProgress(60, '正在识别图片文字...');
+            var ret = await scanWorker.recognize(dataUrl);
+            return ret.data.text || '';
+        }
+
+        document.getElementById('scanFile').addEventListener('change', async function(e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (scanBusy) return;
+            scanBusy = true;
+            try {
+                document.getElementById('scanTip').style.display = 'none';
+                document.getElementById('scanBtn').disabled = true;
+                document.getElementById('scanBtn').innerText = '识别中...';
+                document.getElementById('scanResultBox').style.display = 'none';
+
+                var dataUrl = await compressImage(file);
+                var pw = document.getElementById('scanPreviewWrap');
+                document.getElementById('scanPreviewImg').src = dataUrl;
+                pw.style.display = 'block';
+
+                var text = await runOCR(dataUrl);
+                var cleaned = cleanAddress(text);
+                document.getElementById('scanFullText').value = text;
+                var cands = extractCandidates(text);
+                window._scanCandidates = cands;
+                renderCandidates(cands);
+
+                document.getElementById('scanProgress').style.display = 'none';
+                document.getElementById('scanResultBox').style.display = 'block';
+                document.getElementById('scanBtn').disabled = false;
+                document.getElementById('scanBtn').innerText = '📸 重新拍照 / 选图';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('scanProgress').style.display = 'none';
+                alert('识别失败：' + (err.message || '未知错误') + '，请检查网络后重试');
+                document.getElementById('scanBtn').disabled = false;
+                document.getElementById('scanBtn').innerText = '📸 拍照 / 从相册选择运单图片';
+                document.getElementById('scanTip').style.display = 'block';
+            } finally {
+                scanBusy = false;
             }
         });
-        detailHtml += `</div>`;
-    }
-    detailHtml += `
-    <div class="detail-block"><div class="detail-title">全程汇总</div>
-        <div class="detail-row"><span>全部油费</span><span class="text-out">${formatMoney(allOilCost)} 元</span></div>
-        <div class="detail-row"><span>全部高速</span><span class="text-out">${formatMoney(allRoadCost)} 元</span></div>
-        <div class="detail-row"><span>信息费合计</span><span class="text-out">${formatMoney(infoFee)} 元</span></div>
-        <div class="detail-row"><span>合计可变成本</span><span class="text-out">${formatMoney(allCost)} 元</span></div>
-    </div>`;
-    document.getElementById("detailHtml").innerHTML = detailHtml;
-    const saveData = {};
-    cacheKeys.forEach(k=>{if(document.getElementById(k)) saveData[k] = document.getElementById(k).value;});
-    addHistory({
-        data: saveData,
-        time: new Date().toLocaleString(),
-        totalProfit: formatMoney(totalProfit),
-        allKm: totalKm.toFixed(0),
-        perKm: formatMoney(perKmProfit),
-        type: mileType,
-        tip: tipText,
-        detail: detailHtml
-    });
-    resultBox.scrollIntoView({behavior: "smooth", block: "start"});
-}
-// 生成图片
-function generateImage(){
-    if(!lastCalcData || lastCalcData.totalProfit === undefined){
-        alert("请先点击一键计算利润");
-        return;
-    }
-    if(typeof html2canvas === 'undefined'){
-        alert("图片组件加载失败，请检查网络后重试");
-        return;
-    }
-    const bgColor = document.body.classList.contains('light') ? '#f8fafc' : '#162238';
-    html2canvas(document.getElementById("resultBox"), {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: bgColor
-    }).then(canvas=>{
-        document.getElementById("resultImg").src = canvas.toDataURL('image/png');
-        document.getElementById("imageModal").classList.add("show");
-    }).catch(err=>{
-        alert("生成图片失败，请重试");
-        console.error(err);
-    });
-}
-// 语音识别入口
-function startVoiceRecognition(){
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SpeechRecognition){
-        alert("当前浏览器不支持语音识别\n苹果手机请用Safari打开\n并部署到HTTPS线上网址");
-        return;
-    }
-    if(recognition) recognition.abort();
-    recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    document.getElementById("btnVoiceInput").innerText = "🎤识别中…";
-    recognition.onresult = function(e){
-        const transcript = e.results[0][0].transcript;
-        parseVoiceText(transcript);
-        document.getElementById("btnVoiceInput").innerText = "🎤语音";
-    };
-    recognition.onerror = function(err){
-        console.log(err);
-        document.getElementById("btnVoiceInput").innerText = "🎤语音";
-        alert("语音识别出错：" + err.error);
-    };
-    recognition.onspeechend = function(){
-        recognition.stop();
-        document.getElementById("btnVoiceInput").innerText = "🎤语音";
-    };
-    recognition.start();
-}
-// 语音文本解析：依次填充 主单里程、运费、放空里程
-function parseVoiceText(text){
-    const numList = text.match(/\d+(\.\d+)?/g);
-    if(!numList || numList.length === 0) return;
-    const arr = numList.map(x=>Number(x));
-    if(arr[0]) document.getElementById('mainKm').value = arr[0];
-    if(arr[1]) document.getElementById('mainMoney').value = arr[1];
-    if(arr[2]) document.getElementById('emptyKm').value = arr[2];
-    updateEmptyMileText();
-    saveCache();
-}
-// 页面加载绑定所有事件
-document.addEventListener('DOMContentLoaded', function(){
-    loadCache();
-    // 主题切换
-    document.getElementById('btnTheme').onclick = toggleTheme;
-    // 历史/计算页切换
-    document.getElementById('btnGoHis').onclick = switchPage;
-    document.getElementById('btnGoCalc').onclick = switchPage;
-    // 计算按钮
-    document.getElementById('btnCalc').onclick = calculate;
-    // 语音按钮
-    document.getElementById('btnVoiceInput').onclick = startVoiceRecognition;
-    // 油价、高速单价加减按钮
-    document.querySelectorAll('.adj-btn').forEach(btn=>{
-        btn.onclick = function(){
-            adjustValue(this.dataset.adj, this.dataset.step);
-        };
-    });
-    // 放空面板折叠
-    document.getElementById('emptyToggle').onclick = function(){
-        document.getElementById('emptyCard').classList.toggle('open');
-    };
-    document.getElementById('emptyKm').addEventListener('input', function(){
-        updateEmptyMileText();
-        saveCache();
-    });
-    // 拼单整体展开收起
-    document.getElementById('btnTogglePin').onclick = function(){
-        document.getElementById('pinBox').classList.toggle('show');
-        this.innerText = document.getElementById('pinBox').classList.contains('show') ? '收起多拼单录入' : '展开多拼单录入';
-    };
-    // 单个拼单折叠
-    document.querySelectorAll('.pin-head').forEach(h=>{
-        h.onclick = function(e){
-            if(e.target.classList.contains('pin-clear')) return;
-            const n = this.dataset.pin;
-            const body = document.querySelector(`[data-body="${n}"]`);
-            body.classList.toggle('show');
-            const icon = this.querySelector('.icon');
-            icon.innerText = body.classList.contains('show') ? '−' : '+';
-        };
-    });
-    // 单拼单清空
-    document.querySelectorAll('.pin-clear').forEach(btn=>{
-        btn.onclick = function(e){
-            e.stopPropagation();
-            const n = this.dataset.clear;
-            document.getElementById(`p${n}km`).value = '';
-            document.getElementById(`p${n}high`).value = '';
-            document.getElementById(`p${n}money`).value = '';
-            saveCache();
-        };
-    });
-    // 明细展开/收起
-    document.getElementById('btnDetail').onclick = function(){
-        document.getElementById('detailBox').classList.toggle('open');
-        this.innerText = document.getElementById('detailBox').classList.contains('open') ? '收起明细' : '展开明细';
-    };
-    // 生成图片弹窗
-    document.getElementById('btnImage').onclick = generateImage;
-    document.getElementById('closeImage').onclick = function(){
-        document.getElementById("imageModal").classList.remove("show");
-    };
-    // 清空主单信息（保留油价、油耗、高速单价）
-    document.getElementById('btnClearMain').onclick = function(){
-        document.getElementById('mainKm').value = '';
-        document.getElementById('mainMoney').value = '';
-        document.getElementById('infoFee').value = '';
-        document.getElementById('emptyKm').value = '';
-        document.getElementById('emptyHigh').value = '';
-        updateEmptyMileText();
-        saveCache();
-    };
-    // 清空全部拼单
-    document.getElementById('btnClearPin').onclick = function(){
-        ['p1km','p1high','p1money','p2km','p2high','p2money','p3km','p3high','p3money'].forEach(id=>{
-            document.getElementById(id).value = '';
+
+        /* ==================== Tab 切换 ==================== */
+        function switchTab(tab) {
+            var routePage = document.getElementById('pageRoute');
+            var profitPage = document.getElementById('pageProfit');
+            var tabRoute = document.getElementById('tabRoute');
+            var tabProfit = document.getElementById('tabProfit');
+            if (tab === 'route') {
+                // 切回路线页时，同步利润页的油耗油价
+                syncFuelToRoute();
+                routePage.classList.add('active');
+                profitPage.classList.remove('active');
+                tabRoute.classList.add('active');
+                tabProfit.classList.remove('active');
+            } else {
+                routePage.classList.remove('active');
+                profitPage.classList.add('active');
+                tabRoute.classList.remove('active');
+                tabProfit.classList.add('active');
+                // 切到利润页时，同步路线页的油耗油价
+                syncFuelFromRoute();
+                loadRouteDataToProfit();
+            }
+            window.scrollTo(0, 0);
+        }
+
+        /* ==================== 油耗油价双向同步 ==================== */
+        var FUEL_SYNC_KEY = 'freight_fuel_sync';
+
+        function saveFuelSync(consume, price) {
+            try { localStorage.setItem(FUEL_SYNC_KEY, JSON.stringify({ consume: consume, price: price })); } catch (e) {}
+        }
+        function loadFuelSync() {
+            try { return JSON.parse(localStorage.getItem(FUEL_SYNC_KEY) || 'null'); } catch (e) { return null; }
+        }
+
+        function syncFuelFromRoute() {
+            var fc = document.getElementById('fuelConsume');
+            var fp = document.getElementById('fuelPrice');
+            var pFc = document.getElementById('pOilUse');
+            var pFp = document.getElementById('pOilPrice');
+            if (fc && fc.value) pFc.value = parseFloat(fc.value);
+            if (fp && fp.value) pFp.value = parseFloat(fp.value).toFixed(1);
+            saveFuelSync(pFc.value, pFp.value);
+        }
+
+        function syncFuelToRoute() {
+            var fc = document.getElementById('fuelConsume');
+            var fp = document.getElementById('fuelPrice');
+            var pFc = document.getElementById('pOilUse');
+            var pFp = document.getElementById('pOilPrice');
+            if (pFc && pFc.value && fc) fc.value = parseFloat(pFc.value);
+            if (pFp && pFp.value && fp) fp.value = parseFloat(pFp.value).toFixed(1);
+            saveFuelSync(fc ? fc.value : pFc.value, fp ? fp.value : pFp.value);
+        }
+
+        // 利润页油耗油价变化时保存
+        document.addEventListener('input', function(e) {
+            if (e.target.id === 'pOilUse' || e.target.id === 'pOilPrice') {
+                saveFuelSync(document.getElementById('pOilUse').value, document.getElementById('pOilPrice').value);
+            }
+            if (e.target.id === 'fuelConsume' || e.target.id === 'fuelPrice') {
+                saveFuelSync(document.getElementById('fuelConsume').value, document.getElementById('fuelPrice').value);
+            }
         });
-        saveCache();
-    };
-    // 全局重置按钮
-    document.getElementById('btnResetAll').onclick = function(){
-        safeRemove("truck_calc_history");
-        document.getElementById("mainKm").value = '';
-        document.getElementById("mainMoney").value = '';
-        document.getElementById("infoFee").value = '';
-        document.getElementById("emptyKm").value = '';
-        document.getElementById("emptyHigh").value = '';
-        document.getElementById("p1km").value = '';
-        document.getElementById("p1high").value = '';
-        document.getElementById("p1money").value = '';
-        document.getElementById("p2km").value = '';
-        document.getElementById("p2high").value = '';
-        document.getElementById("p2money").value = '';
-        document.getElementById("p3km").value = '';
-        document.getElementById("p3high").value = '';
-        document.getElementById("p3money").value = '';
-        document.getElementById("oilUse").value = "21";
-        updateEmptyMileText();
-        saveCache();
-        document.getElementById("resultBox").classList.remove("show");
-        document.getElementById("pinBox").classList.remove("show");
-        document.getElementById('btnTogglePin').innerText = "展开多拼单录入";
-        document.getElementById('detailBox').classList.remove("open");
-        document.getElementById('btnDetail').innerText = "展开明细";
-        document.getElementById('emptyCard').classList.remove("open");
-        renderHistory();
-    };
-});
-</script>
+
+        /* ==================== 路线数据 → 利润页共享 ==================== */
+        var ROUTE_DATA_KEY = 'freight_route_result';
+        var _routeJustSaved = false; // 有新路线数据待同步到利润页
+
+        function saveRouteResult(data) {
+            try { localStorage.setItem(ROUTE_DATA_KEY, JSON.stringify(data)); } catch (e) {}
+            _routeJustSaved = true; // 标记有新数据
+        }
+
+        function loadRouteResult() {
+            try { return JSON.parse(localStorage.getItem(ROUTE_DATA_KEY) || 'null'); } catch (e) { return null; }
+        }
+
+        // 把路线数据写入利润页输入框
+        function applyRouteDataToProfit(data) {
+            var mainKmInput = document.getElementById('pMainKm');
+            var tollsInput = document.getElementById('pTolls');
+            var pinKmInput = document.getElementById('pPinKm');
+
+            // 辅助函数：设置字段值并标记为路线带入
+            function setField(el, val) {
+                el.value = val;
+                el.dataset.auto = '1';
+                if (val) el.classList.add('auto-filled');
+                else el.classList.remove('auto-filled');
+            }
+
+            // 主单里程 = A→D直达里程
+            var directKm = data.directKm || data.mainKm;
+            setField(mainKmInput, directKm.toFixed(1));
+            // 过路费 = 全程总过路费（含所有路段）
+            setField(tollsInput, String(Math.round(data.totalTolls)));
+            // 拼单绕路里程 = 拼单后总里程 - A→D直达（含绕行、上下高速、空驶等所有额外距离）
+            var detourKm = data.detourKm != null ? data.detourKm : ((data.routeTotalKm || data.totalKm) - directKm);
+            var pinAllowed = data.sugLevel && data.sugLevel !== 'notrecommend';
+            var pinVal = (pinAllowed && detourKm > 0) ? detourKm.toFixed(1) : '';
+            setField(pinKmInput, pinVal);
+
+            // 显示"路线带入"标签
+            ['tagMainKm','tagTolls'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'inline-block';
+            });
+            document.getElementById('tagPinKm').style.display = (pinAllowed && detourKm > 0) ? 'inline-block' : 'none';
+
+            // 填充路程明细
+            var pb = document.getElementById('pinBreakdown');
+            if (pb) {
+                pb.style.display = 'block';
+                document.getElementById('pbDirect').innerText = directKm.toFixed(1) + ' km';
+                var routeTotal = data.routeTotalKm || data.totalKm || (directKm + detourKm);
+                document.getElementById('pbRouteTotal').innerText = routeTotal.toFixed(1) + ' km';
+                document.getElementById('pbDetour').innerText = detourKm.toFixed(1) + ' km';
+                document.getElementById('pbEmpty').innerText = (data.emptyKm || 0).toFixed(1) + ' km';
+                document.getElementById('pbPinTotal').innerText = (data.pinTotalKm || 0).toFixed(1) + ' km';
+                var sharedKm = (data.pinTotalKm || 0) - (data.pinSoloKm || 0);
+                document.getElementById('pbShared').innerText = sharedKm.toFixed(1) + ' km';
+            }
+        }
+
+        function loadRouteDataToProfit() {
+            var data = loadRouteResult();
+            var banner = document.getElementById('routeDataBanner');
+            var sugCard = document.getElementById('pSuggestCard');
+            if (!data) {
+                banner.style.display = 'none';
+                sugCard.style.display = 'none';
+                return;
+            }
+
+            // 有新路线数据时，无条件覆盖所有字段（路线变了旧手动值无意义）
+            if (_routeJustSaved) {
+                applyRouteDataToProfit(data);
+                _routeJustSaved = false;
+            } else {
+                // 兜底：字段标记为"路线带入"但值与路线数据不一致时，强制同步
+                var directKm = data.directKm || data.mainKm;
+                var detourKm = data.detourKm != null ? data.detourKm : ((data.routeTotalKm || data.totalKm) - directKm);
+                var pinAllowed = data.sugLevel && data.sugLevel !== 'notrecommend';
+                var expectedPin = (pinAllowed && detourKm > 0) ? detourKm.toFixed(1) : '';
+                var pinEl = document.getElementById('pPinKm');
+                if (pinEl && pinEl.dataset.auto === '1' && pinEl.value !== expectedPin) {
+                    pinEl.value = expectedPin;
+                    if (expectedPin) pinEl.classList.add('auto-filled');
+                    else pinEl.classList.remove('auto-filled');
+                }
+                // 兜底：更新路程明细
+                var pb = document.getElementById('pinBreakdown');
+                if (pb) {
+                    pb.style.display = 'block';
+                    document.getElementById('pbDirect').innerText = directKm.toFixed(1) + ' km';
+                    var routeTotal = data.routeTotalKm || data.totalKm || (directKm + detourKm);
+                    document.getElementById('pbRouteTotal').innerText = routeTotal.toFixed(1) + ' km';
+                    document.getElementById('pbDetour').innerText = detourKm.toFixed(1) + ' km';
+                    document.getElementById('pbEmpty').innerText = (data.emptyKm || 0).toFixed(1) + ' km';
+                    document.getElementById('pbPinTotal').innerText = (data.pinTotalKm || 0).toFixed(1) + ' km';
+                    document.getElementById('pbShared').innerText = ((data.pinTotalKm || 0) - (data.pinSoloKm || 0)).toFixed(1) + ' km';
+                }
+            }
+
+            // 显示数据来源横幅
+            banner.style.display = 'flex';
+            var pinInfo = '';
+            if (data.pinTotalKm > 0) {
+                if (data.pinSoloKm > 0) {
+                    pinInfo = '，拼单B→C' + data.pinTotalKm.toFixed(0) + 'km（顺路' + (data.pinTotalKm - data.pinSoloKm).toFixed(0) + '＋单独' + data.pinSoloKm.toFixed(0) + '）';
+                } else {
+                    pinInfo = '，拼单B→C' + data.pinTotalKm.toFixed(0) + 'km（全顺路）';
+                }
+            }
+            document.getElementById('routeDataText').innerText =
+                '路线数据已带入：主单' + data.mainKm.toFixed(0) + 'km'
+                + (data.emptyKm > 0 ? '＋放空' + data.emptyKm.toFixed(0) + 'km' : '')
+                + pinInfo
+                + '，过路费' + Math.round(data.totalTolls) + '元（黄牌估算）';
+
+            // 拼单建议卡片（和路线页一致）
+            if (data.sugLevel) {
+                sugCard.className = 'suggest-card ' + data.sugClass;
+                sugCard.style.display = 'block';
+                document.getElementById('pSugIcon').innerText = data.sugIcon;
+                document.getElementById('pSugText').innerText = data.sugText;
+                document.getElementById('pSugDesc').innerText = data.sugDesc;
+            } else {
+                sugCard.style.display = 'none';
+            }
+        }
+
+        // 当用户手动修改自动填入的字段时，取消auto标记
+        ['pMainKm','pTolls','pEmptyKm','pEmptyTolls','pPinKm'].forEach(function(id) {
+            document.addEventListener('input', function(e) {
+                if (e.target.id === id) {
+                    e.target.dataset.auto = '0';
+                    e.target.classList.remove('auto-filled');
+                }
+            });
+        });
+
+        /* ==================== 利润计算 ==================== */
+
+        function pGetNum(id) {
+            var v = parseFloat(document.getElementById(id).value);
+            return isNaN(v) || v < 0 ? 0 : v;
+        }
+
+        function calculateProfit() {
+            var oilUse = parseFloat(document.getElementById('pOilUse').value) || 30;
+            var oilPrice = pGetNum('pOilPrice');
+            var mainKm = pGetNum('pMainKm');
+            var tolls = pGetNum('pTolls');
+            var mainMoney = pGetNum('pMainMoney');
+            var infoFee = pGetNum('pInfoFee');
+            var emptyKm = pGetNum('pEmptyKm');
+            var emptyTolls = pGetNum('pEmptyTolls');
+            var pinKm = pGetNum('pPinKm');
+            var pinMoney = pGetNum('pPinMoney');
+
+            if (mainKm <= 0 && pinKm <= 0 && emptyKm <= 0) {
+                alert('请至少填写里程，或先到路线页规划路线');
+                return;
+            }
+
+            // 实际总里程 = 放空（驻点→A） + 主单A→D直达 + 拼单绕路
+            var totalKm = emptyKm + mainKm + pinKm;
+            var allOilCost = totalKm * oilUse / 100 * oilPrice;
+            var emptyOilCost = emptyKm * oilUse / 100 * oilPrice;
+            var pinOilCost = pinKm * oilUse / 100 * oilPrice;
+            // 放空成本合计
+            var emptyTotalCost = emptyOilCost + emptyTolls;
+
+            // 总成本 = 油费 + 全程过路费 + 放空过路费 + 信息费
+            var allCost = allOilCost + tolls + emptyTolls + infoFee;
+
+            // 收入
+            var allIncome = mainMoney + pinMoney;
+
+            // 利润
+            var totalProfit = allIncome - allCost;
+            var perKmProfit = totalKm > 0 ? totalProfit / totalKm : 0;
+
+            // 不拼单利润：放空 + 主单直达A→D，过费用直达过路费
+            var routeData = loadRouteResult();
+            var noPinKm = emptyKm + (routeData && routeData.directKm ? routeData.directKm : mainKm);
+            var noPinTolls = routeData && routeData.directTolls != null ? routeData.directTolls : tolls;
+            var noPinOilCost = noPinKm * oilUse / 100 * oilPrice;
+            var noPinProfit = mainMoney - noPinOilCost - noPinTolls - emptyTolls - infoFee;
+
+            // 渲染结果
+            var hero = document.getElementById('profitHero');
+            hero.className = 'profit-hero ' + (totalProfit >= 0 ? 'good' : 'bad');
+            document.getElementById('pTotalProfit').innerText = totalProfit.toFixed(0);
+            document.getElementById('pProfitSub').innerText =
+                '全程' + totalKm.toFixed(0) + 'km ｜ 每公里' + perKmProfit.toFixed(2) + '元';
+
+            document.getElementById('pPerKm').innerText = perKmProfit.toFixed(2) + ' 元';
+            document.getElementById('pIncome').innerText = allIncome.toFixed(0);
+            document.getElementById('pCost').innerText = allCost.toFixed(0);
+
+            // 评估建议
+            var tipEl = document.getElementById('pTip');
+            var tipText, tipClass;
+            if (totalKm <= 50) {
+                if (totalProfit >= 350) { tipClass = 'tip-good'; tipText = '优质倒短，覆盖当日人工'; }
+                else if (totalProfit >= 260) { tipClass = 'tip-warn'; tipText = '仅放空兜底，不专程跑'; }
+                else { tipClass = 'tip-bad'; tipText = '低价单，不建议干'; }
+            } else if (totalKm <= 300) {
+                if (perKmProfit >= 1.5) { tipClass = 'tip-good'; tipText = '高价货源，优先接'; }
+                else if (perKmProfit >= 1.0) { tipClass = 'tip-warn'; tipText = '顺路带回程货才可接'; }
+                else { tipClass = 'tip-bad'; tipText = '行业低价，专程跑亏人工'; }
+            } else if (totalKm <= 800) {
+                if (perKmProfit >= 1.2) { tipClass = 'tip-good'; tipText = '干线好价，稳定盈利'; }
+                else if (perKmProfit >= 0.7) { tipClass = 'tip-warn'; tipText = '无放空可临时补档期'; }
+                else { tipClass = 'tip-bad'; tipText = '运价偏低，长期不合算'; }
+            } else {
+                if (perKmProfit >= 1.0) { tipClass = 'tip-good'; tipText = '长途优质单，摊薄固定成本'; }
+                else if (perKmProfit >= 0.55) { tipClass = 'tip-warn'; tipText = '必须匹配返程货再考虑'; }
+                else { tipClass = 'tip-bad'; tipText = '亏本低价，慎接'; }
+            }
+            tipEl.className = 'p-tip ' + tipClass;
+            tipEl.innerText = tipText;
+
+            // 拼单对比
+            var compareBox = document.getElementById('pCompare');
+            if (pinKm > 0 || pinMoney > 0) {
+                compareBox.style.display = 'grid';
+                document.getElementById('pNoPin').innerText = noPinProfit.toFixed(0);
+                document.getElementById('pWithPin').innerText = totalProfit.toFixed(0);
+                var add = totalProfit - noPinProfit;
+                var addEl = document.getElementById('pAddProfit');
+                addEl.innerText = (add >= 0 ? '+' : '') + add.toFixed(0) + ' 元';
+                addEl.style.color = add >= 0 ? '#00e676' : '#ff6b6b';
+            } else {
+                compareBox.style.display = 'none';
+            }
+
+            // 明细
+            document.getElementById('dMainMoney').innerText = mainMoney.toFixed(0) + ' 元';
+            var dPinRow = document.getElementById('dPinRow');
+            if (pinMoney > 0) {
+                dPinRow.style.display = 'flex';
+                document.getElementById('dPinMoney').innerText = pinMoney.toFixed(0) + ' 元';
+            } else { dPinRow.style.display = 'none'; }
+            document.getElementById('dOil').innerText = allOilCost.toFixed(0) + ' 元';
+            // 放空油费
+            var dEmptyOilRow = document.getElementById('dEmptyOilRow');
+            if (dEmptyOilRow) {
+                if (emptyKm > 0) {
+                    dEmptyOilRow.style.display = 'flex';
+                    document.getElementById('dEmptyOil').innerText = emptyOilCost.toFixed(0) + ' 元';
+                } else {
+                    dEmptyOilRow.style.display = 'none';
+                }
+            }
+            // 绕路油费
+            var dDetourOilRow = document.getElementById('dDetourOilRow');
+            if (dDetourOilRow) {
+                if (pinKm > 0) {
+                    dDetourOilRow.style.display = 'flex';
+                    document.getElementById('dDetourOil').innerText = pinOilCost.toFixed(0) + ' 元';
+                } else {
+                    dDetourOilRow.style.display = 'none';
+                }
+            }
+            document.getElementById('dRoad').innerText = tolls.toFixed(0) + ' 元';
+            // 放空过路费
+            var dEmptyTollsRow = document.getElementById('dEmptyTollsRow');
+            if (dEmptyTollsRow) {
+                if (emptyTolls > 0) {
+                    dEmptyTollsRow.style.display = 'flex';
+                    document.getElementById('dEmptyTolls').innerText = emptyTolls.toFixed(0) + ' 元';
+                } else {
+                    dEmptyTollsRow.style.display = 'none';
+                }
+            }
+            document.getElementById('dInfo').innerText = infoFee.toFixed(0) + ' 元';
+            // 放空成本合计
+            var dEmptySubRow = document.getElementById('dEmptySubRow');
+            if (dEmptySubRow) {
+                if (emptyKm > 0 || emptyTolls > 0) {
+                    dEmptySubRow.style.display = 'flex';
+                    document.getElementById('dEmptyTotal').innerText = emptyTotalCost.toFixed(0) + ' 元'
+                        + '（油费' + emptyOilCost.toFixed(0) + '＋过路费' + emptyTolls.toFixed(0) + '）';
+                } else {
+                    dEmptySubRow.style.display = 'none';
+                }
+            }
+            document.getElementById('dNet').innerText = totalProfit.toFixed(0) + ' 元';
+            document.getElementById('dNet').style.color = totalProfit >= 0 ? '#00e676' : '#ff6b6b';
+
+            document.getElementById('pResult').classList.add('show');
+            setTimeout(function() {
+                document.getElementById('pResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function clearProfit() {
+            ['pMainKm','pTolls','pMainMoney','pInfoFee','pEmptyKm','pEmptyTolls','pPinKm','pPinMoney'].forEach(function(id) {
+                var el = document.getElementById(id);
+                el.value = '';
+                el.dataset.auto = '0';
+                el.classList.remove('auto-filled');
+            });
+            document.getElementById('pResult').classList.remove('show');
+            document.getElementById('routeDataBanner').style.display = 'none';
+            var sugCard = document.getElementById('pSuggestCard');
+            sugCard.style.display = 'none';
+            sugCard.className = 'suggest-card';
+            ['tagMainKm','tagTolls','tagPinKm'].forEach(function(id) {
+                document.getElementById(id).style.display = 'none';
+            });
+            var pb = document.getElementById('pinBreakdown');
+            if (pb) pb.style.display = 'none';
+            // 清除路线数据缓存，防止切换tab后旧数据又被带入
+            try { localStorage.removeItem(ROUTE_DATA_KEY); } catch (e) {}
+            _routeJustSaved = false;
+        }
+    </script>
 </body>
 </html>
