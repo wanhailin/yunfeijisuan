@@ -6,6 +6,35 @@
     <title>货运路线与利润计算器</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* 隐藏数字输入框原生增减按钮，使用自定义 +/- 按钮 */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] { -moz-appearance: textfield; }
+        /* 自定义步进器 */
+        .stepper { display: flex; align-items: stretch; gap: 6px; }
+        .stepper input { flex: 1; min-width: 0; }
+        .step-btn {
+            width: 34px;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .step-btn:active { background: rgba(255,255,255,0.18); transform: scale(0.9); }
+        .p-field .step-btn { border-radius: 10px; width: 38px; font-size: 20px; }
         html { overflow-x: hidden; }
         body {
             font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -851,10 +880,12 @@
             color: #fff;
             font-size: 14px;
             font-weight: 600;
+            text-align: center;
         }
         .cost-param input:focus {
             outline: none;
             border-color: rgba(255,107,53,0.5);
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
         }
         .cost-param .unit {
             font-size: 11px;
@@ -1142,6 +1173,9 @@
             font-size: 15px;
             font-weight: 600;
         }
+        .p-field input {
+            text-align: center;
+        }
         .p-field input:focus, .p-field select:focus {
             outline: none;
             border-color: rgba(0,212,255,0.5);
@@ -1414,11 +1448,19 @@
             <div class="cost-params">
                 <div class="cost-param">
                     <label>油耗<span class="unit">L/100km</span></label>
-                    <input type="number" id="fuelConsume" value="30" min="5" max="60" step="0.5">
+                    <div class="stepper">
+                        <button type="button" class="step-btn" onclick="stepInput('fuelConsume',-1)">−</button>
+                        <input type="number" id="fuelConsume" value="21" min="5" max="60" step="1">
+                        <button type="button" class="step-btn" onclick="stepInput('fuelConsume',1)">+</button>
+                    </div>
                 </div>
                 <div class="cost-param">
                     <label>油价<span class="unit">元/L</span></label>
-                    <input type="number" id="fuelPrice" value="7.5" min="4" max="15" step="0.1">
+                    <div class="stepper">
+                        <button type="button" class="step-btn" onclick="stepInput('fuelPrice',-1)">−</button>
+                        <input type="number" id="fuelPrice" value="7.5" min="4" max="15" step="0.1">
+                        <button type="button" class="step-btn" onclick="stepInput('fuelPrice',1)">+</button>
+                    </div>
                 </div>
             </div>
             <button id="calcBtn" class="calc-btn" onclick="calcRoute()">智能规划路线</button>
@@ -1595,11 +1637,19 @@
             <div class="p-grid2">
                 <div class="p-field">
                     <label>油耗 L/100km</label>
-                    <input type="number" id="pOilUse" value="30" min="5" max="60" step="0.5">
+                    <div class="stepper">
+                        <button type="button" class="step-btn" onclick="stepInput('pOilUse',-1)">−</button>
+                        <input type="number" id="pOilUse" value="21" min="5" max="60" step="1">
+                        <button type="button" class="step-btn" onclick="stepInput('pOilUse',1)">+</button>
+                    </div>
                 </div>
                 <div class="p-field">
                     <label>柴油单价 元/L</label>
-                    <input type="number" id="pOilPrice" value="7.5" step="0.1" min="0">
+                    <div class="stepper">
+                        <button type="button" class="step-btn" onclick="stepInput('pOilPrice',-1)">−</button>
+                        <input type="number" id="pOilPrice" value="7.5" step="0.1" min="0">
+                        <button type="button" class="step-btn" onclick="stepInput('pOilPrice',1)">+</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2439,7 +2489,7 @@
                 var detourRatio = directAD > 0 ? (detourKm / directAD * 100) : 0;
 
                 // 费用估算
-                var fuelConsume = parseFloat(document.getElementById('fuelConsume').value) || 30;
+                var fuelConsume = parseFloat(document.getElementById('fuelConsume').value) || 21;
                 var fuelPrice = parseFloat(document.getElementById('fuelPrice').value) || 7.5;
                 var fuelPerKm = fuelConsume / 100 * fuelPrice; // 每公里油费
                 var totalKm = totalDist / 1000;
@@ -2808,6 +2858,24 @@
             window.scrollTo(0, 0);
         }
 
+        /* ==================== 自定义步进按钮 ==================== */
+        function stepInput(id, dir) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var step = parseFloat(el.getAttribute('step')) || 1;
+            var min = el.hasAttribute('min') ? parseFloat(el.min) : -Infinity;
+            var max = el.hasAttribute('max') ? parseFloat(el.max) : Infinity;
+            var val = parseFloat(el.value);
+            if (isNaN(val)) val = 0;
+            val += dir * step;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            // 修正浮点精度（0.1+0.1=0.2等）
+            var dec = (String(step).split('.')[1] || '').length;
+            el.value = val.toFixed(dec);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
         /* ==================== 油耗油价双向同步 ==================== */
         var FUEL_SYNC_KEY = 'freight_fuel_sync';
 
@@ -2994,7 +3062,7 @@
         }
 
         function calculateProfit() {
-            var oilUse = parseFloat(document.getElementById('pOilUse').value) || 30;
+            var oilUse = parseFloat(document.getElementById('pOilUse').value) || 21;
             var oilPrice = pGetNum('pOilPrice');
             var mainKm = pGetNum('pMainKm');
             var tolls = pGetNum('pTolls');
