@@ -854,6 +854,33 @@
             margin-top: 8px;
         }
         .scan-reselect:hover { color: #00d4ff; }
+        /* ===== 拼单开关（默认一单，需要时才展开第二单） ===== */
+        .pin-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 15px;
+            margin: 4px 0 14px;
+            background: rgba(0,212,255,0.06);
+            border: 1px solid rgba(0,212,255,0.22);
+            border-radius: 12px;
+        }
+        .pin-toggle-row .ptt-main { font-size: 14px; font-weight: 700; color: #e8eaf0; }
+        .pin-toggle-row .ptt-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; line-height: 1.4; }
+        .pin-switch {
+            width: 48px; height: 28px; border-radius: 14px;
+            background: rgba(255,255,255,0.16); position: relative;
+            flex-shrink: 0; transition: background 0.2s; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .pin-switch i {
+            position: absolute; top: 2px; left: 2px; width: 24px; height: 24px;
+            border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+            transition: transform 0.2s;
+        }
+        .pin-switch.on { background: #00d4ff; }
+        .pin-switch.on i { transform: translateX(20px); }
         /* ===== 费用参数 ===== */
         .cost-params {
             display: flex;
@@ -1430,7 +1457,15 @@
                 </div>
             </div>
 
-            <div class="group-title"><span>📦 拼单</span><span class="line"></span></div>
+            <div class="pin-toggle-row" onclick="togglePin()">
+                <div>
+                    <div class="ptt-main">＋ 这趟还有拼单（第二单）</div>
+                    <div class="ptt-sub">大多时候只有一单，不用打开；真拼到第二单再点开填 B、C</div>
+                </div>
+                <span class="pin-switch" id="pinSwitch" role="switch" aria-checked="false" onclick="event.stopPropagation();togglePin()"><i></i></span>
+            </div>
+            <div id="pinSection" style="display:none;">
+            <div class="group-title"><span>📦 拼单（第二单）</span><span class="line"></span></div>
             <div class="form-group">
                 <div class="form-label"><span class="point-tag point-b">B</span>装货点<span class="label-desc">拼单起点</span></div>
                 <div class="input-wrap">
@@ -1444,6 +1479,7 @@
                     <input type="text" id="addrC" class="tech-input" placeholder="粘贴客户微信地址，自动清理" onpaste="handlePaste('addrC')">
                     <button type="button" class="clean-icon-btn" onclick="cleanInput('addrC')" title="清理提取地址">🧹</button>
                 </div>
+            </div>
             </div>
             <div class="cost-params">
                 <div class="cost-param">
@@ -1503,7 +1539,7 @@
             </div>
 
             <!-- 拼单绕路 -->
-            <div class="detour-card">
+            <div class="detour-card" id="detourCard">
                 <div class="detour-head">
                     <div>
                         <div class="detour-title">🔀 拼单绕路</div>
@@ -1528,7 +1564,7 @@
             </div>
 
             <!-- 共路英雄卡片 -->
-            <div class="shared-hero">
+            <div class="shared-hero" id="sharedHeroCard">
                 <div class="hero-label">⭐ 共路路段（主单+拼单同程）</div>
                 <div><span class="hero-num" id="sharedDist">-</span><span class="hero-unit">公里</span></div>
                 <div class="progress-track"><div class="progress-fill" id="ratioFill" style="width:0%"></div></div>
@@ -1831,6 +1867,18 @@
         var mapReady = false;
         var STORAGE_KEY = 'freight_addr_last';
         var ADDR_IDS = ['addrA', 'addrB', 'addrC', 'addrD'];
+        // 是否拼单：默认 false（大多数情况只有一单 A→D），打开开关才启用 B、C
+        var hasPin = false;
+        function setPin(on) {
+            hasPin = !!on;
+            var sec = document.getElementById('pinSection');
+            var sw = document.getElementById('pinSwitch');
+            if (sec) sec.style.display = hasPin ? 'block' : 'none';
+            if (sw) { sw.classList.toggle('on', hasPin); sw.setAttribute('aria-checked', hasPin); }
+            var btn = document.getElementById('calcBtn');
+            if (btn && !btn.disabled) btn.innerText = hasPin ? '智能规划拼单路线' : '规划这一单路线';
+        }
+        function togglePin() { setPin(!hasPin); }
 
         // 点角色定义
         var POINT_ROLE = {
@@ -1923,6 +1971,7 @@
                 document.getElementById(id).value = '';
             });
             try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            setPin(false);
             document.getElementById('resultBox').style.display = 'none';
             hideError();
             setStatus('已清空');
@@ -1930,6 +1979,7 @@
         }
         window.addEventListener('DOMContentLoaded', function() {
             loadAddr();
+            setPin(false);
             ADDR_IDS.forEach(function(id) {
                 document.getElementById(id).addEventListener('input', saveAddr);
             });
@@ -2418,11 +2468,16 @@
 
         async function calcRoute() {
             var addrA = document.getElementById('addrA').value.trim();
-            var addrB = document.getElementById('addrB').value.trim();
-            var addrC = document.getElementById('addrC').value.trim();
             var addrD = document.getElementById('addrD').value.trim();
-            if (!addrA || !addrB || !addrC || !addrD) {
-                showError('四个地址都要填写哦');
+            var pinOn = !!hasPin;
+            var addrB = pinOn ? document.getElementById('addrB').value.trim() : '';
+            var addrC = pinOn ? document.getElementById('addrC').value.trim() : '';
+            if (!addrA || !addrD) {
+                showError('请填写装货点 A 和卸货点 D（一单就填这两个）');
+                return;
+            }
+            if (pinOn && (!addrB || !addrC)) {
+                showError('拼单的装货 B、卸货 C 都要填；这趟没拼单就把上方拼单开关关掉');
                 return;
             }
             hideError();
@@ -2436,14 +2491,36 @@
             }
             try {
                 // 逐个串行解析地址，避免并发限流，失败时明确指出哪个地址
-                var addrMap = { A: addrA, B: addrB, C: addrC, D: addrD };
-                var tags = ['A', 'B', 'C', 'D'];
+                var addrMap = pinOn ? { A: addrA, B: addrB, C: addrC, D: addrD } : { A: addrA, D: addrD };
+                var tags = pinOn ? ['A', 'B', 'C', 'D'] : ['A', 'D'];
                 geoPoints = {};
                 for (var ti = 0; ti < tags.length; ti++) {
                     var tag = tags[ti];
-                    setStatus('正在解析地址 ' + tag + '（' + (ti + 1) + '/4）...');
+                    setStatus('正在解析地址 ' + tag + '（' + (ti + 1) + '/' + tags.length + '）...');
                     geoPoints[tag] = await geocode(addrMap[tag], tag);
                 }
+                var analysis;
+                if (!pinOn) {
+                    // ===== 单一单：只请求 A→D 一段，最快最省 =====
+                    setStatus('正在计算 A→D 路线...');
+                    var one = await driving(geoPoints['A'], geoPoints['D']);
+                    routeMatrix = { A: { D: one }, D: { A: one } };
+                    optimalPath = ['A', 'D'];
+                    var oneFactor = getRouteTollFactor(geoPoints['A'], geoPoints['D']);
+                    var oneTolls = Math.round((one.tolls || 0) * oneFactor);
+                    analysis = {
+                        segments: [{
+                            from: 'A', to: 'D', key: 'A-D', type: 'main',
+                            distance: one.distance, duration: one.duration,
+                            tollsOriginal: one.tolls || 0, tollFactor: oneFactor,
+                            tolls: oneTolls, coords: one.coords
+                        }],
+                        sharedSegs: [], mainSegs: ['A-D'], subSegs: [],
+                        sharedDist: 0, mainDist: one.distance, subDist: 0, emptyDist: 0,
+                        sharedTolls: 0, mainTolls: oneTolls, subTolls: 0, emptyTolls: 0,
+                        totalTollsOriginal: one.tolls || 0, totalTolls: oneTolls
+                    };
+                } else {
                 setStatus('正在计算12段路线矩阵（受控并发）...');
                 // 计算4点间12段有向距离矩阵（双向独立请求，时间更准确）
                 var pairs = [
@@ -2474,7 +2551,8 @@
 
                 // 找最优路径
                 optimalPath = findOptimalPath();
-                var analysis = analyzePath(optimalPath);
+                analysis = analyzePath(optimalPath);
+                }
 
                 var totalDist = 0, totalTime = 0;
                 analysis.segments.forEach(function(seg) {
@@ -2512,7 +2590,10 @@
 
                 // 拼单建议
                 var sugIcon, sugText, sugDesc, sugClass, sugLevel;
-                if (detourKm <= 0) {
+                if (!pinOn) {
+                    // 单一单：没有拼单，自然也没有绕路/拼单建议
+                    sugIcon = ''; sugText = ''; sugDesc = ''; sugClass = ''; sugLevel = '';
+                } else if (detourKm <= 0) {
                     sugIcon = '🎉'; sugText = '完全顺路，强烈推荐拼单！'; sugClass = 'sug-green'; sugLevel = 'strong';
                     sugDesc = '拼单不产生任何绕路，白赚一笔运费。';
                 } else if (detourRatio <= 5) {
@@ -2531,6 +2612,15 @@
 
                 // 渲染
                 renderRouteFlow(optimalPath, analysis);
+                // 单一单时隐藏所有“拼单/共路/绕路”卡片，只呈现这一单 A→D
+                var _elDetour = document.getElementById('detourCard');
+                var _elSharedHero = document.getElementById('sharedHeroCard');
+                var _elSharedStat = document.getElementById('ovShared').closest('.stat-card');
+                var _elSubStat = document.getElementById('ovSub').closest('.stat-card');
+                if (_elDetour) _elDetour.style.display = pinOn ? 'block' : 'none';
+                if (_elSharedHero) _elSharedHero.style.display = pinOn ? 'block' : 'none';
+                if (_elSharedStat) _elSharedStat.style.display = pinOn ? 'block' : 'none';
+                if (_elSubStat) _elSubStat.style.display = pinOn ? 'block' : 'none';
                 document.getElementById('ovTotal').innerHTML = fmtDist(totalDist) + '<span class="stat-unit">km</span>';
                 document.getElementById('ovShared').innerHTML = fmtDist(analysis.sharedDist) + '<span class="stat-unit">km</span>';
                 document.getElementById('ovMain').innerHTML = fmtDist(analysis.mainDist) + '<span class="stat-unit">km</span>';
@@ -2544,11 +2634,15 @@
 
                 // 拼单建议
                 var sugCard = document.getElementById('suggestCard');
-                sugCard.className = 'suggest-card ' + sugClass;
-                sugCard.style.display = 'block';
-                document.getElementById('sugIcon').innerText = sugIcon;
-                document.getElementById('sugText').innerText = sugText;
-                document.getElementById('sugDesc').innerText = sugDesc;
+                if (pinOn) {
+                    sugCard.className = 'suggest-card ' + sugClass;
+                    sugCard.style.display = 'block';
+                    document.getElementById('sugIcon').innerText = sugIcon;
+                    document.getElementById('sugText').innerText = sugText;
+                    document.getElementById('sugDesc').innerText = sugDesc;
+                } else {
+                    sugCard.style.display = 'none';
+                }
 
                 // 费用
                 document.getElementById('costTotal').innerText = totalCost.toFixed(0);
@@ -2614,7 +2708,7 @@
             } catch (e) {
                 showError(e.message);
                 setStatus('');
-                btn.innerText = '智能规划路线';
+                btn.innerText = hasPin ? '智能规划拼单路线' : '规划这一单路线';
             } finally {
                 btn.disabled = false;
             }
@@ -2733,6 +2827,8 @@
         }
 
         function flashFillBtn(inputId) {
+            // OCR 填入拼单 B/C 时，自动打开拼单开关，避免填了却不参与计算
+            if (inputId === 'addrB' || inputId === 'addrC') setPin(true);
             var map = {
                 addrA: { sel: '.fill-btn.to-a', color: 'rgba(255,107,53,0.2)' },
                 addrD: { sel: '.fill-btn.to-d', color: 'rgba(255,107,53,0.2)' },
@@ -2964,7 +3060,7 @@
             // 填充路程明细
             var pb = document.getElementById('pinBreakdown');
             if (pb) {
-                pb.style.display = 'block';
+                pb.style.display = (data.pinTotalKm && data.pinTotalKm > 0) ? 'block' : 'none';
                 document.getElementById('pbDirect').innerText = directKm.toFixed(1) + ' km';
                 var routeTotal = data.routeTotalKm || data.totalKm || (directKm + detourKm);
                 document.getElementById('pbRouteTotal').innerText = routeTotal.toFixed(1) + ' km';
@@ -3005,7 +3101,7 @@
                 // 兜底：更新路程明细
                 var pb = document.getElementById('pinBreakdown');
                 if (pb) {
-                    pb.style.display = 'block';
+                    pb.style.display = (data.pinTotalKm && data.pinTotalKm > 0) ? 'block' : 'none';
                     document.getElementById('pbDirect').innerText = directKm.toFixed(1) + ' km';
                     var routeTotal = data.routeTotalKm || data.totalKm || (directKm + detourKm);
                     document.getElementById('pbRouteTotal').innerText = routeTotal.toFixed(1) + ' km';
@@ -3232,6 +3328,7 @@
             try { localStorage.removeItem(ROUTE_DATA_KEY); } catch (e) {}
             _routeJustSaved = false;
         }
-    </script>
+           </script>
 </body>
+
 </html>
