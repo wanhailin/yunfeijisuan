@@ -1979,6 +1979,7 @@
         }
         window.addEventListener('DOMContentLoaded', function() {
             loadAddr();
+            restoreFuel();
             setPin(false);
             ADDR_IDS.forEach(function(id) {
                 document.getElementById(id).addEventListener('input', saveAddr);
@@ -2572,6 +2573,7 @@
                 var fuelPerKm = fuelConsume / 100 * fuelPrice; // 每公里油费
                 var totalKm = totalDist / 1000;
                 var totalFuelCost = totalKm * fuelPerKm;
+                var totalFuelL = totalKm * fuelConsume / 100;
                 var totalTollCost = analysis.totalTolls;
                 var totalCost = totalFuelCost + totalTollCost;
 
@@ -2646,7 +2648,7 @@
 
                 // 费用
                 document.getElementById('costTotal').innerText = totalCost.toFixed(0);
-                document.getElementById('costFuel').innerHTML = totalFuelCost.toFixed(0) + '<span class="cb-yuan"> 元</span>';
+                document.getElementById('costFuel').innerHTML = totalFuelCost.toFixed(0) + ' 元 / ' + totalFuelL.toFixed(1) + ' 升';
                 document.getElementById('costToll').innerHTML = totalTollCost.toFixed(0) + '<span class="cb-yuan"> 元</span>'
                     + '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:3px;line-height:1.3;">黄牌二轴估算<span style="margin:0 3px;">·</span>高德小车' + analysis.totalTollsOriginal.toFixed(0) + '元</div>';
                 if (analysis.sharedDist > 0) {
@@ -2981,6 +2983,18 @@
         function loadFuelSync() {
             try { return JSON.parse(localStorage.getItem(FUEL_SYNC_KEY) || 'null'); } catch (e) { return null; }
         }
+        function restoreFuel() {
+            var f = loadFuelSync();
+            if (!f) return;
+            var fc = document.getElementById('fuelConsume');
+            var fp = document.getElementById('fuelPrice');
+            var pFc = document.getElementById('pOilUse');
+            var pFp = document.getElementById('pOilPrice');
+            var c = parseFloat(f.consume);
+            if (!isNaN(c)) { if (fc) fc.value = c; if (pFc) pFc.value = c; }
+            var pr = parseFloat(f.price);
+            if (!isNaN(pr)) { var ps = pr.toFixed(1); if (fp) fp.value = ps; if (pFp) pFp.value = ps; }
+        }
 
         function syncFuelFromRoute() {
             var fc = document.getElementById('fuelConsume');
@@ -3179,6 +3193,9 @@
             var allOilCost = totalKm * oilUse / 100 * oilPrice;
             var emptyOilCost = emptyKm * oilUse / 100 * oilPrice;
             var pinOilCost = pinKm * oilUse / 100 * oilPrice;
+            var allOilL = totalKm * oilUse / 100;
+            var emptyOilL = emptyKm * oilUse / 100;
+            var pinOilL = pinKm * oilUse / 100;
             // 放空成本合计
             var emptyTotalCost = emptyOilCost + emptyTolls;
 
@@ -3254,13 +3271,13 @@
                 dPinRow.style.display = 'flex';
                 document.getElementById('dPinMoney').innerText = pinMoney.toFixed(0) + ' 元';
             } else { dPinRow.style.display = 'none'; }
-            document.getElementById('dOil').innerText = allOilCost.toFixed(0) + ' 元';
+            document.getElementById('dOil').innerText = allOilCost.toFixed(0) + ' 元 / ' + allOilL.toFixed(1) + ' 升';
             // 放空油费
             var dEmptyOilRow = document.getElementById('dEmptyOilRow');
             if (dEmptyOilRow) {
                 if (emptyKm > 0) {
                     dEmptyOilRow.style.display = 'flex';
-                    document.getElementById('dEmptyOil').innerText = emptyOilCost.toFixed(0) + ' 元';
+                    document.getElementById('dEmptyOil').innerText = emptyOilCost.toFixed(0) + ' 元 / ' + emptyOilL.toFixed(1) + ' 升';
                 } else {
                     dEmptyOilRow.style.display = 'none';
                 }
@@ -3270,7 +3287,7 @@
             if (dDetourOilRow) {
                 if (pinKm > 0) {
                     dDetourOilRow.style.display = 'flex';
-                    document.getElementById('dDetourOil').innerText = pinOilCost.toFixed(0) + ' 元';
+                    document.getElementById('dDetourOil').innerText = pinOilCost.toFixed(0) + ' 元 / ' + pinOilL.toFixed(1) + ' 升';
                 } else {
                     dDetourOilRow.style.display = 'none';
                 }
